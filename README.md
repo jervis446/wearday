@@ -1,6 +1,6 @@
-# Fits Clone
+# Wearday
 
-A digital wardrobe app in React Native (Expo), modelled on Fits (`de.lhenne.fits`).
+A digital wardrobe and daily outfit log in React Native (Expo), modelled on Fits (`de.lhenne.fits`).
 Built from scratch: no code or assets were taken from the original app.
 
 ## Features

@@ -1,21 +1,23 @@
 import { StyleSheet } from 'react-native';
 
+/** Wearday palette: warm linen neutrals with a terracotta accent. */
 export const colors = {
-  bg: '#FAF8F5',
+  bg: '#F7F3EE',
   card: '#FFFFFF',
-  text: '#1C1B1A',
-  muted: '#8A8580',
-  border: '#E8E4DF',
-  accent: '#1C1B1A',
+  text: '#2A2420',
+  muted: '#8C8279',
+  border: '#EAE3DA',
+  accent: '#C2603E',
   accentText: '#FFFFFF',
-  chip: '#F0ECE7',
-  danger: '#C0392B',
+  accentSoft: '#F6E3DA',
+  chip: '#EFE8E0',
+  danger: '#B3261E',
 };
 
 export const ui = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   pad: { padding: 16 },
-  h1: { fontSize: 26, fontWeight: '700', color: colors.text },
+  h1: { fontSize: 26, fontWeight: '800', color: colors.text, letterSpacing: -0.5 },
   h2: { fontSize: 18, fontWeight: '600', color: colors.text },
   label: { fontSize: 13, fontWeight: '600', color: colors.muted, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
   body: { fontSize: 15, color: colors.text },

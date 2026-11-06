@@ -113,7 +113,7 @@ export default function OutfitBuilder() {
         <Text style={ui.label}>Tags</Text>
         <TextInput style={ui.input} value={tags} onChangeText={setTags} placeholder="work, summer, date night" />
 
-        <Button title="Save outfit" onPress={save} style={{ marginTop: 20, backgroundColor: pieces.length ? colors.accent : colors.muted }} />
+        <Button title="Save outfit" onPress={save} style={{ marginTop: 20, backgroundColor: pieces.length ? colors.accent : colors.chip }} />
         {existing ? (
           <Button
             title="Delete outfit"
