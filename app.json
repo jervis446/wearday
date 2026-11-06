@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "fits-clone",
+    "name": "Fits Clone",
     "slug": "fits-clone",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,6 +20,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to your photos to add clothes and outfit selfies.",
+          "cameraPermission": "Allow camera access to photograph clothes and outfit selfies."
+        }
+      ]
+    ],
+    "scheme": "fitsclone"
   }
 }
