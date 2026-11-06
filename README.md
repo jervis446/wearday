@@ -22,6 +22,19 @@ npx expo start          # scan the QR code with Expo Go (Android/iOS)
 npx expo start --web    # or run it in the browser
 ```
 
+## Build the app
+
+Builds run in the cloud with [EAS Build](https://docs.expo.dev/build/introduction/), so you don't need Android Studio or Xcode.
+
+```bash
+npm install -g eas-cli
+eas login
+eas init                                          # links the project to your Expo account (first time only)
+eas build -p android --profile preview            # installable .apk for testing
+eas build -p android --profile production         # .aab for the Google Play Store
+eas build -p ios --profile production             # needs an Apple Developer account
+```
+
 ## Structure
 
 - `src/app/`: screens (Expo Router). `(tabs)` holds Wardrobe / Outfits / Calendar / Stats; `item/`, `outfit/` and `log.tsx` are detail and edit screens.
