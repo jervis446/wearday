@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
+import { cleanupImages, deleteImage } from './images';
 import { Db, Item, Outfit, WearLog, uid } from './types';
 
 const KEY = 'fits-clone/db/v1';
@@ -26,10 +27,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
-      .then((raw) => raw && setDb({ ...empty, ...JSON.parse(raw) }))
+      .then((raw) => {
+        const loaded: Db = raw ? { ...empty, ...JSON.parse(raw) } : empty;
+        setDb(loaded);
+        // Once per launch, remove photos nothing points to (e.g. from a cancelled "Add item").
+        cleanupImages([...loaded.items.map((i) => i.imageUri), ...loaded.logs.map((l) => l.selfieUri)]);
+      })
       .catch(() => {})
       .finally(() => setReady(true));
   }, []);
+
+  // Latest data for side effects (deleting files) that must not run inside state updaters.
+  const dbRef = useRef(db);
+  useEffect(() => {
+    dbRef.current = db;
+  }, [db]);
 
   useEffect(() => {
     if (ready) AsyncStorage.setItem(KEY, JSON.stringify(db)).catch(() => {});
@@ -40,6 +52,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const saveItem: Store['saveItem'] = useCallback((input) => {
     const saved: Item = { ...input, id: input.id ?? uid(), createdAt: Date.now() };
+    const old = dbRef.current.items.find((i) => i.id === saved.id);
+    if (old && old.imageUri !== saved.imageUri) deleteImage(old.imageUri);
     setDb((d) => {
       const prev = d.items.find((i) => i.id === saved.id);
       return { ...d, items: upsert(d.items, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
@@ -48,7 +62,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteItem = useCallback((id: string) => {
+    deleteImage(dbRef.current.items.find((i) => i.id === id)?.imageUri);
     setDb((d) => ({
+      ...d,
       items: d.items.filter((i) => i.id !== id),
       outfits: d.outfits.map((o) => ({ ...o, pieces: o.pieces.filter((p) => p.itemId !== id) })),
       logs: d.logs.map((l) => ({ ...l, itemIds: l.itemIds.filter((x) => x !== id) })),
@@ -74,11 +90,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const saveLog: Store['saveLog'] = useCallback((input) => {
     const saved: WearLog = { ...input, id: input.id ?? uid() };
+    const old = dbRef.current.logs.find((l) => l.id === saved.id);
+    if (old?.selfieUri && old.selfieUri !== saved.selfieUri) deleteImage(old.selfieUri);
     setDb((d) => ({ ...d, logs: upsert(d.logs, saved) }));
     return saved;
   }, []);
 
   const deleteLog = useCallback((id: string) => {
+    deleteImage(dbRef.current.logs.find((l) => l.id === id)?.selfieUri);
     setDb((d) => ({ ...d, logs: d.logs.filter((l) => l.id !== id) }));
   }, []);
 

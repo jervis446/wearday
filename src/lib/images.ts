@@ -2,6 +2,8 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Platform } from 'react-native';
 
+import { fileName, unreferenced } from './files';
+
 /**
  * Picks a photo from the camera or library and copies it into the app's document
  * directory so it survives cache clears. Returns the persistent URI, or null if cancelled.
@@ -30,10 +32,12 @@ export async function pickImage(source: 'camera' | 'library', square = true): Pr
   return persist(result.assets[0].uri);
 }
 
+const imagesDir = () => new Directory(Paths.document, 'images');
+
 function persist(uri: string): string {
   if (Platform.OS === 'web') return uri;
   try {
-    const dir = new Directory(Paths.document, 'images');
+    const dir = imagesDir();
     dir.create({ intermediates: true, idempotent: true });
     const ext = uri.split('.').pop()?.split('?')[0] || 'jpg';
     const dest = new File(dir, `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`);
@@ -54,4 +58,33 @@ export function chooseImage(square = true): Promise<string | null> {
       { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
     ]);
   });
+}
+
+/** Deletes a photo the app owns. Ignores anything outside the app's images folder. */
+export function deleteImage(uri?: string) {
+  if (!uri || Platform.OS === 'web' || !uri.includes('/images/')) return;
+  try {
+    const file = new File(imagesDir(), fileName(uri));
+    if (file.exists) file.delete();
+  } catch {
+    // Already gone, or not ours.
+  }
+}
+
+/**
+ * Deletes photos in the images folder that nothing refers to any more, e.g. a photo taken
+ * for an item that was then cancelled. Returns how many files were removed.
+ */
+export function cleanupImages(referenced: (string | undefined)[]): number {
+  if (Platform.OS === 'web') return 0;
+  try {
+    const dir = imagesDir();
+    if (!dir.exists) return 0;
+    const files = dir.list().filter((e): e is File => e instanceof File);
+    const stale = new Set(unreferenced(files.map((f) => f.name), referenced));
+    for (const f of files) if (stale.has(f.name)) f.delete();
+    return stale.size;
+  } catch {
+    return 0;
+  }
 }
