@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-import { colors, ui } from '../lib/theme';
+import { Palette, themed, useTheme } from '../lib/theme';
 import { Item } from '../lib/types';
 
 /** Destructive confirm dialog that also works on web. */
@@ -27,6 +27,8 @@ export function Button({
   variant?: 'primary' | 'secondary' | 'danger';
   style?: ViewStyle;
 }) {
+  const { colors } = useTheme();
+  const s = makeStyles(colors);
   const bg = variant === 'primary' ? colors.accent : variant === 'danger' ? colors.danger : colors.chip;
   const fg = variant === 'secondary' ? colors.text : colors.accentText;
   return (
@@ -40,6 +42,8 @@ export function Button({
 }
 
 export function Chip({ label, active, onPress }: { label: string; active?: boolean; onPress?: () => void }) {
+  const { colors } = useTheme();
+  const s = makeStyles(colors);
   return (
     <Pressable onPress={onPress} style={[s.chip, active && { backgroundColor: colors.accent }]}>
       <Text style={[s.chipText, active && { color: colors.accentText }]}>{label}</Text>
@@ -58,6 +62,7 @@ export function ChipRow({
   onToggle: (v: string) => void;
   scroll?: boolean;
 }) {
+  const s = makeStyles(useTheme().colors);
   const chips = options.map((o) => (
     <Chip key={o} label={o} active={selected.includes(o)} onPress={() => onToggle(o)} />
   ));
@@ -71,6 +76,8 @@ export function ChipRow({
 }
 
 export function ItemThumb({ item, size, badge }: { item?: Item; size: number; badge?: string }) {
+  const { colors, ui } = useTheme();
+  const s = makeStyles(colors);
   return (
     <View style={[s.thumb, { width: size, height: size }]}>
       {item?.imageUri ? (
@@ -88,6 +95,7 @@ export function ItemThumb({ item, size, badge }: { item?: Item; size: number; ba
 }
 
 export function Empty({ title, hint, action }: { title: string; hint?: string; action?: React.ReactNode }) {
+  const { ui } = useTheme();
   return (
     <View style={ui.empty}>
       <Text style={ui.h2}>{title}</Text>
@@ -97,14 +105,25 @@ export function Empty({ title, hint, action }: { title: string; hint?: string; a
   );
 }
 
-const s = StyleSheet.create({
+export function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const { ui } = useTheme();
+  return (
+    <View style={[ui.card, { padding: 14, gap: 10, marginBottom: 8 }]}>
+      <Text style={ui.h2}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
+const makeStyles = themed((colors: Palette) =>
+  StyleSheet.create({
   btn: { paddingVertical: 13, paddingHorizontal: 18, borderRadius: 12, alignItems: 'center' },
   btnText: { fontSize: 15, fontWeight: '600' },
   chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.chip },
   chipText: { fontSize: 13, fontWeight: '500', color: colors.text },
   chipRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
   thumb: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.photo,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
@@ -122,4 +141,5 @@ const s = StyleSheet.create({
     paddingVertical: 1,
   },
   badgeText: { color: colors.accentText, fontSize: 11, fontWeight: '600' },
-});
+  }),
+);

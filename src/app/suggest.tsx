@@ -8,12 +8,13 @@ import { Button, ChipRow } from '../components/ui';
 import { autoLayout } from '../lib/outfitLayout';
 import { useStore, useWearCounts } from '../lib/store';
 import { aiConfigured, Suggestion, suggestOutfit } from '../lib/suggest';
-import { colors, ui } from '../lib/theme';
+import { useTheme } from '../lib/theme';
 import { Item } from '../lib/types';
 
 const OCCASIONS = ['Everyday', 'Work', 'Date night', 'Party', 'Sport', 'Travel'];
 
 export default function Suggest() {
+  const { colors, ui } = useTheme();
   const { items, logs, itemsOfLog, saveOutfit } = useStore();
   const wears = useWearCounts();
   const { width } = useWindowDimensions();

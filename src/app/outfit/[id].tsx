@@ -6,10 +6,11 @@ import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ChipRow, confirm, ItemThumb } from '../../components/ui';
 import { SLOT } from '../../lib/outfitLayout';
 import { useStore } from '../../lib/store';
-import { colors, ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 import { CATEGORIES, OutfitPiece } from '../../lib/types';
 
 export default function OutfitBuilder() {
+  const { colors, ui } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { items, outfits, saveOutfit, deleteOutfit } = useStore();
   const existing = outfits.find((o) => o.id === id);

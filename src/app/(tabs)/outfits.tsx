@@ -4,9 +4,10 @@ import { FlatList, Pressable, Text, useWindowDimensions, View } from 'react-nati
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, Empty } from '../../components/ui';
 import { useStore } from '../../lib/store';
-import { ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 
 export default function Outfits() {
+  const { ui } = useTheme();
   const { outfits, items, logs } = useStore();
   const { width } = useWindowDimensions();
   const size = Math.floor((Math.min(width, 700) - 16 * 2 - 12) / 2);

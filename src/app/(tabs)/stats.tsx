@@ -4,10 +4,11 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ItemThumb } from '../../components/ui';
 import { useStore, useWearCounts } from '../../lib/store';
-import { colors, ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 import { CATEGORIES, Item, todayKey } from '../../lib/types';
 
 export default function Stats() {
+  const { colors, ui } = useTheme();
   const { items, outfits, logs } = useStore();
   const wears = useWearCounts();
 
@@ -75,6 +76,7 @@ function thirtyDaysAgo() {
 }
 
 function Tile({ label, value }: { label: string; value: string }) {
+  const { ui } = useTheme();
   return (
     <View style={[ui.card, { flex: 1, padding: 12 }]}>
       <Text style={ui.h2}>{value}</Text>
@@ -84,6 +86,7 @@ function Tile({ label, value }: { label: string; value: string }) {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const { ui } = useTheme();
   return (
     <View style={[ui.card, { padding: 14 }]}>
       <Text style={[ui.h2, { marginBottom: 10 }]}>{title}</Text>
@@ -93,6 +96,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Strip({ title, items, label }: { title: string; items: Item[]; label?: (i: Item) => string }) {
+  const { ui } = useTheme();
   return (
     <Section title={title}>
       {items.length ? (

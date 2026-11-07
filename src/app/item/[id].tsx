@@ -3,9 +3,10 @@ import { Image, ScrollView, Text, View } from 'react-native';
 
 import { Button, confirm, Empty } from '../../components/ui';
 import { useStore, useWearCounts } from '../../lib/store';
-import { ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 
 export default function ItemDetail() {
+  const { colors, ui } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { items, outfits, logs, itemsOfLog, deleteItem, saveItem } = useStore();
   const wears = useWearCounts();
@@ -35,7 +36,7 @@ export default function ItemDetail() {
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 12, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
       <Stack.Screen options={{ title: item.name }} />
-      <View style={[ui.card, { aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }]}>
+      <View style={[ui.card, { aspectRatio: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.photo }]}>
         <Image source={{ uri: item.imageUri }} style={{ width: '90%', height: '90%' }} resizeMode="contain" />
       </View>
 
@@ -78,6 +79,7 @@ export default function ItemDetail() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const { ui } = useTheme();
   return (
     <View style={[ui.card, { flex: 1, padding: 12, alignItems: 'center' }]}>
       <Text style={ui.h2}>{value}</Text>

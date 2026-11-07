@@ -4,12 +4,13 @@ import { FlatList, Pressable, Text, TextInput, useWindowDimensions, View } from 
 
 import { Button, ChipRow, Empty, ItemThumb } from '../../components/ui';
 import { useStore, useWearCounts } from '../../lib/store';
-import { ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 import { CATEGORIES } from '../../lib/types';
 
 const COLS = 3;
 
 export default function Wardrobe() {
+  const { ui } = useTheme();
   const { items } = useStore();
   const wears = useWearCounts();
   const { width } = useWindowDimensions();

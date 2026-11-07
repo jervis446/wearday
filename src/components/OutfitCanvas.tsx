@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Image, PanResponder, Pressable, View } from 'react-native';
 
-import { colors } from '../lib/theme';
+import { useTheme } from '../lib/theme';
 import { Item, OutfitPiece } from '../lib/types';
 
 /** Base size of a piece as a fraction of canvas width, before its own scale. */
@@ -26,13 +26,14 @@ export function OutfitCanvas({
   selected?: number | null;
   onSelect?: (index: number | null) => void;
 }) {
+  const { colors } = useTheme();
   return (
     <Pressable
       onPress={() => onSelect?.(null)}
       style={{
         width: size,
         height: size,
-        backgroundColor: colors.card,
+        backgroundColor: colors.photo,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: colors.border,
@@ -76,6 +77,7 @@ function Piece({
   onSelect: () => void;
   onMove: (x: number, y: number) => void;
 }) {
+  const { colors } = useTheme();
   const dim = canvas * BASE * piece.scale;
   const left = piece.x * canvas - dim / 2;
   const top = piece.y * canvas - dim / 2;

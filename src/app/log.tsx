@@ -6,11 +6,12 @@ import { OutfitCanvas } from '../components/OutfitCanvas';
 import { Button, ChipRow, confirm, ItemThumb } from '../components/ui';
 import { chooseImage } from '../lib/images';
 import { useStore } from '../lib/store';
-import { colors, ui } from '../lib/theme';
+import { useTheme } from '../lib/theme';
 import { CATEGORIES, todayKey } from '../lib/types';
 
 /** Log what was worn on a day: a saved outfit and/or individual items, plus an outfit selfie. */
 export default function LogOutfit() {
+  const { colors, ui } = useTheme();
   const params = useLocalSearchParams<{ date?: string; itemId?: string; itemIds?: string; logId?: string }>();
   const { items, outfits, logs, saveLog, deleteLog } = useStore();
   const existing = params.logId

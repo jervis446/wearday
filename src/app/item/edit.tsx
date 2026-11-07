@@ -6,10 +6,11 @@ import { Button, ChipRow } from '../../components/ui';
 import { autoTag } from '../../lib/autotag';
 import { chooseImage } from '../../lib/images';
 import { useStore } from '../../lib/store';
-import { colors, ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 import { CATEGORIES, Category, Season, SEASONS } from '../../lib/types';
 
 export default function EditItem() {
+  const { colors, ui } = useTheme();
   const params = useLocalSearchParams<{ id?: string; wishlist?: string }>();
   const { items, saveItem } = useStore();
   const existing = params.id ? items.find((i) => i.id === params.id) : undefined;
@@ -76,7 +77,7 @@ export default function EditItem() {
           const uri = await chooseImage(true);
           if (uri) await onPhoto(uri);
         }}
-        style={[ui.card, { aspectRatio: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}
+        style={[ui.card, { aspectRatio: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: imageUri ? colors.photo : colors.card }]}
       >
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={{ width: '90%', height: '90%' }} resizeMode="contain" />

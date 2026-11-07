@@ -5,12 +5,13 @@ import { Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'r
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ItemThumb } from '../../components/ui';
 import { useStore } from '../../lib/store';
-import { colors, ui } from '../../lib/theme';
+import { useTheme } from '../../lib/theme';
 import { todayKey, WearLog } from '../../lib/types';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function Calendar() {
+  const { colors, ui } = useTheme();
   const { logs, items, outfits, itemsOfLog } = useStore();
   const { width } = useWindowDimensions();
   const [month, setMonth] = useState(() => {
