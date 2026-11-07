@@ -10,6 +10,7 @@ Everything here is optional and can be done in any order. Until a service is set
 | Sign-in emails that actually arrive | Resend (or any SMTP) | Free tier | ~5 min |
 | Usage analytics | PostHog | Free tier | ~3 min |
 | AI outfit suggestions | Cloudflare | Free tier | see `worker/README.md` |
+| Premium subscriptions | RevenueCat + Google Play + App Store | Free until a revenue threshold, then a small % | ~1 hour (store setup) |
 
 Free-tier limits change. Check each provider's pricing page before launch.
 
@@ -79,7 +80,66 @@ To see who signed up and when they last used the app, open Supabase → **Authen
 
 > For users in the EU/UK, analytics may legally need opt-in consent rather than the current opt-out switch. If you target those markets, set `analytics: false` as the default in `src/lib/settingsModel.ts` and ask on first launch.
 
-## 6. Put the keys in the app
+## 6. Premium subscriptions (RevenueCat)
+
+The app sells Premium through **Google Play Billing** and **Apple In-App Purchase**. The stores require this for digital features, and on Google Play in India people can pay with UPI. RevenueCat sits in front of both stores and tells the app (and your database) who is Premium.
+
+### a. Google Play Console
+1. Create the app (package `com.wearday.app`) and upload one build to the **Internal testing** track (`eas build -p android --profile production`, then `eas submit -p android`). Play only lets you create subscriptions after a build is uploaded.
+2. Set up a **payments profile** (Settings → Payments profile) so you can get paid.
+3. **Monetize → Products → Subscriptions → Create subscription**: product ID `wearday_premium`, then add two **base plans**:
+   - `monthly`: auto-renewing, billing period 1 month (for example ₹99)
+   - `yearly`: auto-renewing, billing period 1 year (for example ₹599), with an **offer**: free trial of 7 days, eligibility "New customer acquisition"
+4. **Setup → License testing**: add your Google account, so test purchases are free and renew quickly.
+5. Give RevenueCat access: follow RevenueCat's "Google Play service credentials" guide. You'll create a service account in Google Cloud, invite it in Play Console with financial permissions, and upload its JSON key to RevenueCat.
+
+### b. App Store Connect
+1. Accept the **Paid Apps agreement** and add bank and tax details (Business → Agreements).
+2. Create the app (bundle `com.wearday.app`). Then go to **Monetization → Subscriptions**, create a group "Wearday Premium" and add:
+   - `wearday_premium_monthly`: 1 month
+   - `wearday_premium_yearly`: 1 year, with an **introductory offer**: free, 1 week
+3. Create an **In-App Purchase key** (Users and Access → Integrations) and add it to RevenueCat, along with the App Store Connect API key RevenueCat asks for.
+
+### c. RevenueCat (https://app.revenuecat.com)
+1. Create a project and add two apps: **Google Play** (`com.wearday.app`) and **App Store** (`com.wearday.app`). Connect them with the credentials from a5 and b3.
+2. **Products:** import the subscriptions from both stores.
+3. **Entitlements:** create `premium` and attach all four products.
+4. **Offerings:** edit the `default` offering, add a **Monthly** package (`$rc_monthly`) and an **Annual** package (`$rc_annual`), and attach the matching Play and App Store product to each. The app reads this offering, so you can change prices and trials without an app update.
+5. **API keys:** copy the public SDK keys (`goog_…` and `appl_…`) into `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` and `EXPO_PUBLIC_REVENUECAT_IOS_KEY`.
+
+### d. Tell Supabase who is Premium (webhook)
+This is what lets the database enforce the free sync limit and honour Premium on every device.
+
+1. Apply the new migration: `npx supabase db push`.
+2. Deploy the function: `npx supabase functions deploy revenuecat-webhook --no-verify-jwt`.
+3. Make up a long random secret (for example `openssl rand -hex 32`), then set the function's secrets:
+   ```bash
+   npx supabase secrets set REVENUECAT_WEBHOOK_AUTH="Bearer YOUR_RANDOM_SECRET" REVENUECAT_SECRET_KEY=sk_YOUR_REVENUECAT_SECRET_KEY
+   ```
+   `REVENUECAT_SECRET_KEY` is a **secret** API key from RevenueCat (Project settings → API keys). It's optional but recommended: with it, the webhook asks RevenueCat for each user's current state instead of trusting events in the order they arrive.
+4. In RevenueCat go to **Integrations → Webhooks → Add**:
+   - URL: `https://YOUR_PROJECT_REF.supabase.co/functions/v1/revenuecat-webhook`
+   - Authorization header value: `Bearer YOUR_RANDOM_SECRET` (exactly as set above)
+   - Click **Send test event**; it should return 200.
+
+### e. Test a purchase
+- **Android:** install the internal-testing build from Play with a license-tester account, open Settings → Wearday Premium, and subscribe (no real charge). Check Supabase → Table Editor → `user_entitlements` for a row with `premium = true`.
+- **iPhone:** use TestFlight with a Sandbox tester (Settings → App Store → Sandbox Account on the phone).
+- **During development:** debug builds have a "Developer: simulate Premium" switch on the paywall. It unlocks the app's gates but **not** the server sync limit. To test Premium sync, insert a row in `user_entitlements` for your user in the Supabase table editor.
+
+### What's free and what's Premium
+Change the limits in `src/lib/plans.ts`. If you change the sync limit, also change `free_limit` in `supabase/migrations/20261108090000_premium.sql` (in a new migration).
+
+| | Free | Premium |
+|---|---|---|
+| Wardrobe, outfits, calendar, basic stats, backup | ✓ | ✓ |
+| AI outfit suggestions | 1 a day (basic picker unlimited) | Unlimited |
+| Cloud sync | Up to 50 items | Unlimited |
+| Trips / packing lists | 1 | Unlimited |
+| Collections | 2 | Unlimited |
+| Advanced stats (colours, spending, declutter, cost per wear) | – | ✓ |
+
+## 7. Put the keys in the app
 
 For local development, copy `.env.example` to `.env` and fill it in, then restart `npx expo start`.
 
@@ -89,9 +149,9 @@ For EAS builds, add the same variables in the Expo dashboard (Project → Enviro
 eas env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://YOUR_PROJECT_REF.supabase.co --environment production --environment preview --visibility plaintext
 ```
 
-Repeat for `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_SUGGEST_URL` and so on. All of these are public client keys.
+Repeat for `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_SUGGEST_URL`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`, `EXPO_PUBLIC_REVENUECAT_IOS_KEY` and so on. All of these are public client keys. Never put the RevenueCat secret key or the Supabase service key in the app.
 
-## 7. Check it works
+## 8. Check it works
 
 1. Build: `eas build -p android --profile preview` and install it.
 2. Settings → **Sign in** → try each sign-in method.

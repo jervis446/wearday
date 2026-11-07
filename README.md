@@ -18,6 +18,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
 - **Background removal**: cuts clothes out of photos on the phone (Google ML Kit on Android, Apple Vision on iOS 17+), automatically or with one tap, and you can switch back to the original. Not available in Expo Go or the browser.
 - **Accounts and sync** (optional): sign in with Apple, Google or an emailed code. The wardrobe and photos sync automatically between phones through Supabase, and still work offline. You can delete your account in the app.
+- **Wearday Premium**: monthly or yearly subscription via Google Play and the App Store (RevenueCat). The free plan includes 1 AI suggestion a day, sync for up to 50 items, 1 trip, 2 collections and basic stats. Premium makes all of these unlimited and adds advanced stats. The sync limit is also enforced by the database.
 - **Usage analytics** (optional): privacy-friendly PostHog with a switch in Settings; no session replay, no personal data in events.
 - **Backup and restore**: Settings → Export backup saves everything (data, settings and photos) to one `.zip` file you can keep in Google Drive or iCloud. Restore brings it all back, for example on a new phone.
 - **Daily reminder**: an optional "What are you wearing today?" notification at a time you choose, skipped on days you've already logged. It's a local notification, so nothing goes to a server.
@@ -56,7 +57,7 @@ eas build -p ios --profile production             # needs an Apple Developer acc
 
 ## Accounts, sync and analytics setup
 
-See **[SETUP.md](SETUP.md)** for step-by-step instructions for Supabase, Google sign-in, Sign in with Apple, email delivery and PostHog.
+See **[SETUP.md](SETUP.md)** for step-by-step instructions for Supabase, Google sign-in, Sign in with Apple, email delivery, PostHog and Premium subscriptions (RevenueCat).
 
 ## AI setup
 

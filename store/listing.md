@@ -46,8 +46,17 @@ Wearday turns your closet into an app. Photograph your clothes and Wearday cuts 
 • See your most-worn pieces, cost per wear, colour palette and monthly spending
 • Find clothes you haven't worn in six months and decide whether to keep them
 
+**Wearday Premium**
+Unlimited AI outfit ideas, sync for your whole wardrobe, advanced stats, and unlimited trips and collections. Monthly or yearly, with a free trial on yearly. Free features stay free.
+
 **Private by design**
 Use it without an account, or sign in with Apple, Google or email to back up and sync between your phones. No ads, no selling your data, and you can delete your account in the app at any time.
+
+## In-app purchases
+
+- **Play Console:** set "Contains in-app purchases" in the store listing. The Data safety form above already includes purchase history.
+- **Subscriptions** (suggested starting prices, editable any time in the stores): monthly ₹99, yearly ₹599 with a 7-day free trial.
+- **Links:** add the Terms of Use URL `https://jervis446.github.io/wearday/terms.html` in App Store Connect (App Information → License Agreement can stay as Apple's standard EULA) and in your Play subscription description.
 
 ## Release notes for the first version
 
@@ -70,6 +79,7 @@ Data types, all **collected, not shared**:
 
 | Data type | Required or optional | Processed ephemerally? | Purposes |
 |---|---|---|---|
+| Financial info → **Purchase history** | Optional (only if you subscribe) | No | App functionality (unlocking Premium) |
 | Personal info → **Email address** | Optional (only if you create an account) | No | Account management |
 | Personal info → **User IDs** | Optional | No | Account management, Analytics |
 | Photos and videos → **Photos** | Optional (synced only when signed in) | No | App functionality |
@@ -86,6 +96,7 @@ Data types, all **collected, not shared**:
   - User Content → Photos or Videos: App Functionality
   - User Content → Other User Content: App Functionality
   - Identifiers → User ID: App Functionality, Analytics
+  - Purchases → Purchase History: App Functionality
   - Usage Data → Product Interaction: Analytics
 - **Data not linked to you:**
   - Location → Coarse Location: App Functionality
