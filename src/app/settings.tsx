@@ -5,6 +5,8 @@ import { Button, ChipRow, Section } from '../components/ui';
 import { exportBackup, pickBackup, restorePhotos } from '../lib/backup';
 import { canRemoveBackground } from '../lib/cutout';
 import { CURRENCIES } from '../lib/moneyFormat';
+import { shiftTime } from '../lib/reminderPlan';
+import { ensureNotificationPermission, remindersSupported } from '../lib/reminders';
 import { deviceCurrency, ThemePref, useSettings } from '../lib/settings';
 import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
@@ -31,6 +33,18 @@ export default function SettingsScreen() {
   useEffect(() => {
     canRemoveBackground().then(setCanCutout);
   }, []);
+  const [notifDenied, setNotifDenied] = useState(false);
+  const r = settings.reminder;
+  const timeLabel = new Date(2000, 0, 1, r.hour, r.minute).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const setReminder = (patch: Partial<typeof r>) => update({ reminder: { ...r, ...patch } });
+  const toggleReminder = async (on: boolean) => {
+    if (on && !(await ensureNotificationPermission())) {
+      setNotifDenied(true);
+      return;
+    }
+    setNotifDenied(false);
+    setReminder({ enabled: on });
+  };
   const themeLabel = Object.keys(THEMES).find((k) => THEMES[k] === settings.theme)!;
 
   const doExport = async () => {
@@ -78,6 +92,34 @@ export default function SettingsScreen() {
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 8, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
       <Section title="Appearance">
         <ChipRow options={Object.keys(THEMES)} selected={[themeLabel]} onToggle={(k) => update({ theme: THEMES[k] })} scroll={false} />
+      </Section>
+
+      <Section title="Daily reminder">
+        {remindersSupported ? (
+          <>
+            <View style={[ui.row, { justifyContent: 'space-between', gap: 12 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={ui.body}>Remind me to log my outfit</Text>
+                <Text style={ui.muted}>Skipped on days you’ve already logged.</Text>
+              </View>
+              <Switch value={r.enabled} onValueChange={toggleReminder} trackColor={{ true: colors.accent }} thumbColor={colors.card} />
+            </View>
+            {r.enabled ? (
+              <View style={[ui.row, { gap: 12, justifyContent: 'center' }]}>
+                <Button title="−" variant="secondary" onPress={() => setReminder(shiftTime(r.hour, r.minute, -15))} />
+                <Text style={[ui.h2, { minWidth: 100, textAlign: 'center' }]}>{timeLabel}</Text>
+                <Button title="+" variant="secondary" onPress={() => setReminder(shiftTime(r.hour, r.minute, 15))} />
+              </View>
+            ) : null}
+            {notifDenied ? (
+              <Text style={{ color: colors.danger }}>
+                Notifications are turned off for Wearday. Turn them on in your phone’s settings, then try again.
+              </Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={ui.muted}>Reminders work in the phone app, not in the browser.</Text>
+        )}
       </Section>
 
       <Section title="Currency">

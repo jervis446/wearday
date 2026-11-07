@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { ReminderSync } from '../components/ReminderSync';
+import { remindersSupported } from '../lib/reminders';
 import { SettingsProvider } from '../lib/settings';
 import { StoreProvider } from '../lib/store';
 import { useTheme } from '../lib/theme';
@@ -23,6 +25,7 @@ function AppStack() {
   return (
     <>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      {remindersSupported ? <ReminderSync /> : null}
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },

@@ -16,6 +16,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
 - **Background removal**: cuts clothes out of photos on the phone (Google ML Kit on Android, Apple Vision on iOS 17+), automatically or with one tap, and you can switch back to the original. Not available in Expo Go or the browser.
 - **Backup and restore**: Settings → Export backup saves everything (data, settings and photos) to one `.zip` file you can keep in Google Drive or iCloud. Restore brings it all back, for example on a new phone.
+- **Daily reminder**: an optional "What are you wearing today?" notification at a time you choose, skipped on days you've already logged. It's a local notification, so nothing goes to a server.
 - **Currency**: prices show in your region's currency (₹, $, € and so on), or pick one in Settings.
 - **Dark mode**: follows the phone, or set Light or Dark in Settings.
 - **Item detail**: times worn, cost per wear, last worn date, and how many outfits use the item.

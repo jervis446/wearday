@@ -39,7 +39,14 @@
           "locationWhenInUsePermission": "Wearday uses your approximate location to check today’s weather for outfit suggestions."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#C2603E"
+        }
+      ]
     ],
     "scheme": "wearday",
     "splash": {
