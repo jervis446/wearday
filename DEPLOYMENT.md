@@ -7,13 +7,14 @@ Live resources for Wearday. This file holds no secrets: keys live in Supabase, C
 | Database, auth, photo storage | Supabase project `wearday-mumbai` (South Asia, Mumbai `ap-south-1`) | `https://fkhxgkscnkxtwnvecoyv.supabase.co` |
 | AI outfit suggestions | Cloudflare Worker `wearday-suggest` | `https://wearday-suggest.prime-adarsh108.workers.dev` |
 | App builds | EAS project `@jarvis446/wearday` | https://expo.dev/accounts/jarvis446/projects/wearday |
+| Sign-in emails | Gmail SMTP (`smtp.gmail.com:465`) via a Gmail app password, entered in Supabase → Authentication → SMTP | Sender name "Wearday", 30 emails/hour in Supabase (Gmail allows about 500/day) |
 
 Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`.
 
 EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_AUTH_PROVIDERS=email`, `EXPO_PUBLIC_SUGGEST_URL`.
 
 ## Not set up yet
-- Custom email (Resend): the built-in Supabase email sends only 2 sign-in emails per hour and uses its default link-only template.
+- Own domain + Resend (optional upgrade from Gmail for a professional sender address).
 - RevenueCat, the store subscriptions and the `revenuecat-webhook` Edge Function (SETUP.md §6).
 - Google sign-in, PostHog analytics.
 - The old Sydney project `wearday` (`zkazpfphgppmprgdbrkl`) is unused and can be deleted.
