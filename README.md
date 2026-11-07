@@ -9,6 +9,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Item status**: Available, In laundry, Lent out (to whom), Sold or Donated. Laundry and lent items are skipped by suggestions; sold and donated items move to Archived with their history kept.
 - **Wishlist**: items you want but don't own yet. "I bought it" moves them into the closet.
 - **Outfit builder**: drag pieces around a canvas, resize them, and bring them to the front. Outfits can be named and tagged.
+- **Collections**: group outfits into named collections like "Office" or "Date night", and filter the Outfits tab by them.
 - **Share outfits**: turn any outfit into a branded image card and share it to Instagram, WhatsApp and other apps.
 - **Calendar**: log what you wore each day (a saved outfit and/or individual items), with an optional outfit selfie and a note. The month grid shows the selfie or a piece of clothing for each logged day.
 - **Trips and packing lists**: plan a trip (dates, nights, destination), let the app suggest clothes for its length and season, add outfits or single items, and tick things off, including extras like chargers and ID.
