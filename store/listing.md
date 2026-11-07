@@ -29,6 +29,10 @@ Wearday turns your closet into an app. Photograph your clothes and Wearday cuts 
 • Group outfits into collections like Office, Date night or Holiday
 • Share any outfit as a beautiful image card
 
+**Sync across your phones**
+• Sign in with Apple, Google or an email code
+• Your wardrobe and photos sync automatically and work offline
+
 **Log what you wear**
 • Record each day's outfit with an optional mirror selfie
 • See your outfit history on a calendar
@@ -43,7 +47,7 @@ Wearday turns your closet into an app. Photograph your clothes and Wearday cuts 
 • Find clothes you haven't worn in six months and decide whether to keep them
 
 **Private by design**
-Your wardrobe stays on your phone. No account, no ads, no tracking. Back up and restore everything with one file you control.
+Use it without an account, or sign in with Apple, Google or email to back up and sync between your phones. No ads, no selling your data, and you can delete your account in the app at any time.
 
 ## Release notes for the first version
 
@@ -53,32 +57,39 @@ First release of Wearday: digital closet, outfit builder, outfit suggestions, ca
 
 ## Google Play: Data safety form
 
-Answers that match how the app works today (re-check if you add features).
+These answers match the app with accounts, sync and analytics turned on. If you ship without analytics (no PostHog key), remove the "App interactions" and "Device or other IDs" rows.
 
 | Question | Answer |
 |---|---|
-| Does your app collect or share any of the required user data types? | **Yes**, because the optional outfit suggestion sends data off the device |
-| Is all of the user data collected by your app encrypted in transit? | **Yes** (HTTPS) |
-| Do you provide a way for users to request that their data is deleted? | **Yes**. Nothing is stored on a server; uninstalling deletes everything |
+| Does your app collect or share any of the required user data types? | **Yes** |
+| Is all of the user data collected by your app encrypted in transit? | **Yes** |
+| Do you provide a way for users to request that their data is deleted? | **Yes**: in-app *Delete account*, plus the privacy-policy contact |
+| Is data shared with third parties? | **No**. Supabase, Cloudflare and PostHog act as service providers on our behalf, which Google does not count as sharing |
 
-Data types to declare:
+Data types, all **collected, not shared**:
 
-| Data type | Collected | Shared | Optional? | Purpose |
-|---|---|---|---|---|
-| Location → **Approximate location** | Yes | No | Optional | App functionality (weather for suggestions) |
-| App activity → **Other user-generated content** (clothing names, colours, tags, wear history) | Yes | No | Optional | App functionality (outfit suggestions) |
-
-For both: **processed ephemerally** = Yes (not stored); not used for advertising or analytics.
-Photos and videos: **not collected**. They never leave the device; on-device processing doesn't count as collection.
+| Data type | Required or optional | Processed ephemerally? | Purposes |
+|---|---|---|---|
+| Personal info → **Email address** | Optional (only if you create an account) | No | Account management |
+| Personal info → **User IDs** | Optional | No | Account management, Analytics |
+| Photos and videos → **Photos** | Optional (synced only when signed in) | No | App functionality |
+| Location → **Approximate location** | Optional | Yes | App functionality (weather for suggestions) |
+| App activity → **App interactions** | Optional (users can turn it off) | No | Analytics |
+| App activity → **Other user-generated content** (clothing details, outfits, calendar) | Optional | No | App functionality |
+| Device or other IDs | Optional | No | Analytics |
 
 ## Apple: App Privacy ("nutrition label")
 
-- **Data used to track you:** None
-- **Data linked to you:** None (no account or identifiers)
+- **Data used to track you:** None. PostHog is first-party analytics and is not used for advertising or combined with other companies' data, so no App Tracking Transparency prompt is needed.
+- **Data linked to you** (when signed in):
+  - Contact Info → Email Address: App Functionality
+  - User Content → Photos or Videos: App Functionality
+  - User Content → Other User Content: App Functionality
+  - Identifiers → User ID: App Functionality, Analytics
+  - Usage Data → Product Interaction: Analytics
 - **Data not linked to you:**
   - Location → Coarse Location: App Functionality
-  - User Content → Other User Content: App Functionality
-- Apple also asks about "Photos or Videos": **not collected** (processed only on device)
+- **Sign in with Apple:** required by Apple because the app also offers Google sign-in. It's already built in.
 
 ## Screenshots
 

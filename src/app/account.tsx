@@ -9,8 +9,13 @@ import { supabaseConfigured } from '../lib/supabase';
 import { clearSyncState, useSync } from '../lib/sync/SyncProvider';
 import { useTheme } from '../lib/theme';
 
-/** Which sign-in options this build offers, e.g. "apple,google,email". */
-const ENABLED = (process.env.EXPO_PUBLIC_AUTH_PROVIDERS ?? 'apple,google,email').split(',').map((s: string) => s.trim());
+/**
+ * Which sign-in options this build offers, e.g. "apple,google,email".
+ * "apple" = native Sign in with Apple on iPhone. Add "apple-web" to also offer Apple on Android/web
+ * (needs the extra Apple Services ID setup in Supabase).
+ */
+const LIST: string[] = (process.env.EXPO_PUBLIC_AUTH_PROVIDERS ?? 'apple,google,email').split(',').map((s: string) => s.trim());
+const ENABLED = LIST.filter((p) => p !== 'apple' || Platform.OS === 'ios' || LIST.includes('apple-web')).filter((p) => p !== 'apple-web');
 
 function ask(title: string, message: string, ok: string): Promise<boolean> {
   if (Platform.OS === 'web') return Promise.resolve(!!globalThis.confirm?.(`${title}\n\n${message}`));

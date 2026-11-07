@@ -19,74 +19,98 @@
 <body>
 <main>
   <h1>Wearday Privacy Policy</h1>
-  <p class="muted">Effective 7 November 2026</p>
+  <p class="muted">Effective 7 November 2026 · Updated for accounts, sync and usage statistics</p>
 
   <div class="box">
-    <strong>In short:</strong> Wearday keeps your wardrobe on your phone. There are no accounts, no ads and no analytics or
-    tracking. Your photos never leave your device unless you choose to share or back them up yourself. The only thing sent
-    over the internet is the optional <em>Suggest an outfit</em> request, which contains a text description of your clothes
-    and, if you allow it, your approximate location.
+    <strong>In short:</strong> Wearday works fully on your phone without an account. If you choose to sign in, your wardrobe
+    (including photos) is stored in your private cloud account so it can sync between your devices; only you can access it.
+    We use privacy-friendly usage statistics that you can turn off, and we never sell your data or use it for advertising.
   </div>
 
-  <h2>What stays on your device</h2>
-  <p>Everything you add to Wearday is stored only in the app's private storage on your phone:</p>
+  <h2>Using Wearday without an account</h2>
+  <p>Without signing in, everything you add (photos, clothing details, outfits, calendar, trips, settings) stays only in the
+    app's private storage on your phone. We cannot see it.</p>
+
+  <h2>Accounts and cloud sync (optional)</h2>
+  <p>If you sign in, we store the following in your account so it can be backed up and synced to your other devices:</p>
   <ul>
-    <li>clothing photos, outfit selfies and the details you enter (name, category, colour, brand, size, price, tags, notes and status);</li>
-    <li>outfits, collections, trips and packing lists;</li>
-    <li>your outfit calendar and the statistics calculated from it;</li>
-    <li>your settings.</li>
+    <li><strong>Account details:</strong> your email address, and the sign-in method you used (email code, Google or Apple). If you use
+      Apple's "Hide My Email", we receive a private relay address instead.</li>
+    <li><strong>Your wardrobe:</strong> clothing photos and outfit selfies, item details (name, category, colour, brand, size, price,
+      tags, notes, status), outfits, collections, your outfit calendar, trips and packing lists.</li>
   </ul>
-  <p>We do not have a server that stores this data, and we cannot see it.</p>
+  <p>This data is stored with our hosting provider <a href="https://supabase.com/privacy">Supabase</a>, encrypted in transit, and
+    protected so that only your account can read or change it. We do not look at your wardrobe or photos, except if you ask us
+    for help and give permission, or where the law requires it.</p>
+  <p>When you sign in with Google or Apple, that company tells us your email address (and, for Apple, optionally your name); we
+    do not receive your password or other account information.</p>
 
   <h2>Processing that happens on your device</h2>
   <ul>
-    <li><strong>Colour and category detection.</strong> When you add a photo, the app estimates its colour, and on supported phones its
-      category, using on-device processing (Google ML Kit). The photo is not uploaded.</li>
-    <li><strong>Background removal.</strong> On supported phones, cutting the item out of its background uses Google ML Kit (Android) or
-      Apple Vision (iOS) on the device. The photo is not uploaded. On Android, Google Play services may download the
-      on-device model the first time it is used.</li>
-    <li><strong>Reminders.</strong> Daily reminders are local notifications scheduled on your phone. No push-notification service is used.</li>
+    <li><strong>Colour and category detection</strong> and <strong>background removal</strong> run on your phone (Google ML Kit on
+      Android, Apple Vision on iPhone). Photos are not uploaded for this. On Android, Google Play services may download the
+      on-device model the first time.</li>
+    <li><strong>Reminders</strong> are local notifications scheduled on your phone.</li>
   </ul>
 
-  <h2>What is sent over the internet, and only when you ask</h2>
+  <h2>Outfit suggestions and weather</h2>
   <div class="box">
     <table>
       <tr><th>Feature</th><th>What is sent</th><th>Where it goes</th></tr>
       <tr>
         <td>Suggest an outfit</td>
-        <td>A text list of the clothes in your closet (item id, name, category, colour, seasons, tags, how many times worn, date last
-          worn), the occasion you picked and today's date. <strong>No photos.</strong></td>
-        <td>Our suggestion service on Cloudflare Workers, which asks an AI model hosted by Cloudflare (Workers AI) for an outfit.</td>
+        <td>A text list of the clothes in your closet (item id, name, category, colour, seasons, tags, wear count, date last worn),
+          the occasion and today's date. <strong>No photos.</strong></td>
+        <td>Our suggestion service on Cloudflare Workers, which asks an AI model hosted by Cloudflare (Workers AI) for an outfit.
+          We don't store these requests.</td>
       </tr>
       <tr>
         <td>Use today's weather (optional)</td>
-        <td>Your location rounded to about 1&nbsp;km, sent only if you switch this on and grant location permission.</td>
-        <td>Our suggestion service, which passes the rounded coordinates to <a href="https://open-meteo.com/">Open-Meteo</a> to get
-          the forecast. Open-Meteo sees our server, not your device.</td>
+        <td>Your location rounded to about 1&nbsp;km, only if you switch it on and allow location access.</td>
+        <td>Our suggestion service, which passes it to <a href="https://open-meteo.com/">Open-Meteo</a> for the forecast.</td>
       </tr>
     </table>
   </div>
-  <p>We do not store the content of these requests. Like any web service, Cloudflare processes basic request information (such
-    as IP address and time) to deliver and protect the service, and our service keeps short-lived technical logs of errors.
-    Cloudflare's handling of data is described in the <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare privacy policy</a>.
-    If you don't use <em>Suggest an outfit</em>, the app makes no network requests to us.</p>
+
+  <h2>Usage statistics</h2>
+  <p>To learn which features are useful, the app sends anonymous usage events to <a href="https://posthog.com/privacy">PostHog</a>
+    (hosted in the EU): which screens are opened, and actions such as "added an item", "saved an outfit" or "created a trip",
+    with simple counts (for example, how many items were in an outfit) and basic device information (model, operating system,
+    app version, language). We never send photos, item names, notes, your email or your location in these events. If you are
+    signed in, events are linked to a random account ID, not your name or email. There is no screen recording.</p>
+  <p>You can turn this off any time in <strong>Settings → Privacy → Share anonymous usage data</strong>.</p>
+
+  <h2>What we don't do</h2>
+  <ul>
+    <li>No advertising, and no selling or sharing your data with advertisers or data brokers.</li>
+    <li>No tracking across other companies' apps or websites.</li>
+  </ul>
 
   <h2>Permissions</h2>
   <ul>
     <li><strong>Camera and photos:</strong> to photograph clothes and outfit selfies, or pick them from your gallery.</li>
-    <li><strong>Location (optional):</strong> only for weather-aware suggestions, as described above.</li>
+    <li><strong>Approximate location (optional):</strong> only for weather-aware suggestions.</li>
     <li><strong>Notifications (optional):</strong> only for the daily reminder you switch on.</li>
   </ul>
-  <p>You can change these at any time in your phone's settings. The app keeps working without them.</p>
 
   <h2>Backups and sharing</h2>
-  <p>When you export a backup or share an outfit image, the file is handed to the app or service you choose (for example Google
-    Drive, iCloud or WhatsApp). Those services handle it under their own privacy policies. Wearday does not upload backups anywhere itself.</p>
+  <p>When you export a backup or share an outfit image, the file goes to the app or service you choose (for example Google
+    Drive, iCloud or WhatsApp), under that service's own privacy policy.</p>
 
-  <h2>Deleting your data</h2>
-  <p>Delete individual items, outfits, trips or calendar entries in the app at any time. Uninstalling Wearday deletes all of its data
-    from your phone. Because we hold no account or wardrobe data on a server, there is nothing else to delete. Backup files you
-    exported stay wherever you saved them until you delete them.</p>
+  <h2>Keeping and deleting your data</h2>
+  <ul>
+    <li>Delete individual items, outfits, trips or calendar entries in the app at any time; with sync on, they are deleted from
+      your cloud account too.</li>
+    <li><strong>Delete your account</strong> in <strong>Settings → Account &amp; sync → Delete account</strong>. This permanently deletes
+      your account and everything stored in the cloud, including photos. The copy on your phone is kept until you uninstall
+      the app.</li>
+    <li>Signing out keeps your wardrobe on the phone and stops syncing.</li>
+    <li>We keep cloud data for as long as you have an account. Usage statistics are kept for up to 12 months.</li>
+  </ul>
+
+  <h2>Your rights</h2>
+  <p>You can access, export (Settings → Backup), correct or delete your data at any time in the app. For anything else, such as
+    a copy of the data we hold about you, contact us at the address below.</p>
 
   <h2>Children</h2>
   <p>Wearday is not directed at children under 13, and we do not knowingly collect personal information from children.</p>

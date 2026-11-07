@@ -17,13 +17,15 @@ Built from scratch: no code or assets were taken from the original app.
 - **Auto-tagging**: after you take a photo, the app fills in the colour, and in a real build the category too (Google ML Kit, on the phone). Nothing is uploaded.
 - **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
 - **Background removal**: cuts clothes out of photos on the phone (Google ML Kit on Android, Apple Vision on iOS 17+), automatically or with one tap, and you can switch back to the original. Not available in Expo Go or the browser.
+- **Accounts and sync** (optional): sign in with Apple, Google or an emailed code. The wardrobe and photos sync automatically between phones through Supabase, and still work offline. You can delete your account in the app.
+- **Usage analytics** (optional): privacy-friendly PostHog with a switch in Settings; no session replay, no personal data in events.
 - **Backup and restore**: Settings → Export backup saves everything (data, settings and photos) to one `.zip` file you can keep in Google Drive or iCloud. Restore brings it all back, for example on a new phone.
 - **Daily reminder**: an optional "What are you wearing today?" notification at a time you choose, skipped on days you've already logged. It's a local notification, so nothing goes to a server.
 - **Currency**: prices show in your region's currency (₹, $, € and so on), or pick one in Settings.
 - **Dark mode**: follows the phone, or set Light or Dark in Settings.
 - **Item detail**: times worn, cost per wear, last worn date, and how many outfits use the item.
 
-All data is stored on the device (AsyncStorage). Photos are resized to at most 1200 px and kept in the app's documents folder; unused photos are cleaned up automatically. In the browser version, photos are stored as embedded data.
+Without an account, all data is stored on the device (AsyncStorage). When signed in, it also syncs to your private Supabase account. Photos are resized to at most 1200 px and kept in the app's documents folder; unused photos are cleaned up automatically. In the browser version, photos are stored as embedded data.
 
 ## Run
 
@@ -52,6 +54,10 @@ eas build -p ios --profile production             # needs an Apple Developer acc
 - `src/lib/store.tsx`: data store and persistence. `types.ts` is the data model and `images.ts` handles the camera and photo library.
 - `src/components/`: shared UI and the outfit canvas.
 
+## Accounts, sync and analytics setup
+
+See **[SETUP.md](SETUP.md)** for step-by-step instructions for Supabase, Google sign-in, Sign in with Apple, email delivery and PostHog.
+
 ## AI setup
 
 1. Deploy the Worker: follow [`worker/README.md`](worker/README.md).
@@ -69,7 +75,3 @@ Category auto-detection uses a native module (`@react-native-ml-kit/image-labeli
 npm test               # auto-tagging logic
 cd worker && npm test  # suggestion Worker
 ```
-
-## Not yet implemented
-
-- Cloud sync and accounts (for example Supabase or Firebase).
