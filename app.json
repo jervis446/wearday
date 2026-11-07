@@ -83,6 +83,14 @@
         "projectId": "22f9b0fc-2f25-4829-b74a-97f881a621ec"
       }
     },
-    "owner": "jarvis446"
+    "owner": "jarvis446",
+    "updates": {
+      "url": "https://u.expo.dev/22f9b0fc-2f25-4829-b74a-97f881a621ec",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    }
   }
 }

@@ -1,4 +1,6 @@
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, Switch, Text, View } from 'react-native';
 
@@ -229,6 +231,14 @@ export default function SettingsScreen() {
         {busy ? <ActivityIndicator color={colors.accent} /> : null}
         {status ? <Text style={[ui.body, { color: status.error ? colors.danger : colors.text }]}>{status.text}</Text> : null}
       </Section>
+      <Text style={[ui.muted, { textAlign: 'center', marginTop: 8 }]}>
+        Wearday {Constants.expoConfig?.version ?? ''}
+        {Updates.isEnabled
+          ? Updates.isEmbeddedLaunch
+            ? ` · ${Updates.channel || 'built-in'}`
+            : ` · update ${String(Updates.updateId).slice(0, 8)} (${Updates.createdAt?.toLocaleDateString() ?? ''})`
+          : ''}
+      </Text>
     </ScrollView>
   );
 }
