@@ -3,6 +3,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { AppState } from 'react-native';
 
 import { useAuth } from '../auth';
+import { canSync, FREE_LIMITS } from '../plans';
+import { usePremium } from '../premium';
 import { useStore } from '../store';
 import { supabase } from '../supabase';
 import { emptySyncState, runSync, type SyncState } from './engine';
@@ -10,7 +12,7 @@ import { devicePhotos } from './photos';
 import { photoUrl, supabaseRemote } from './supabaseRemote';
 
 export type SyncStatus = {
-  state: 'off' | 'idle' | 'syncing' | 'error' | 'offline';
+  state: 'off' | 'idle' | 'syncing' | 'error' | 'offline' | 'limit';
   lastSyncedAt?: number;
   error?: string;
 };
@@ -19,6 +21,7 @@ type Ctx = { status: SyncStatus; syncNow: () => Promise<void> };
 const SyncCtx = createContext<Ctx>({ status: { state: 'off' }, syncNow: async () => {} });
 
 const stateKey = (uid: string) => `wearday/sync/v1/${uid}`;
+const LIMIT_MESSAGE = `Sync paused: the free plan syncs up to ${FREE_LIMITS.syncItems} items. Go Premium to sync your whole wardrobe.`;
 /** Wait this long after the last change before syncing, so a burst of edits goes up together. */
 const DEBOUNCE_MS = 2500;
 
@@ -26,6 +29,8 @@ const DEBOUNCE_MS = 2500;
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const store = useStore();
+  const { isPremium } = usePremium();
+  const { getDb, mutate } = store;
   const uid = session?.user.id;
   const [status, setStatus] = useState<SyncStatus>({ state: 'off' });
   const running = useRef<Promise<void> | null>(null);
@@ -34,13 +39,17 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   const syncOnce = useCallback(async () => {
     if (!supabase || !uid || !store.ready) return;
+    if (!canSync(isPremium, getDb().items.length)) {
+      setStatus({ state: 'limit', error: LIMIT_MESSAGE, lastSyncedAt: lastSyncedAt.current });
+      return;
+    }
     setStatus({ state: 'syncing', lastSyncedAt: lastSyncedAt.current });
     try {
       const raw = await AsyncStorage.getItem(stateKey(uid));
       const saved: SyncState = raw ? JSON.parse(raw) : emptySyncState();
       const result = await runSync({
-        getDb: store.getDb,
-        apply: store.mutate,
+        getDb,
+        apply: mutate,
         state: saved,
         remote: supabaseRemote(supabase, uid),
         photos: devicePhotos((name) => photoUrl(supabase!, uid, name)),
@@ -50,10 +59,14 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       setStatus({ state: 'idle', lastSyncedAt: lastSyncedAt.current });
     } catch (e) {
       const msg = (e as Error).message || 'Sync failed';
+      if (/free plan limit/i.test(msg)) {
+        setStatus({ state: 'limit', error: LIMIT_MESSAGE, lastSyncedAt: lastSyncedAt.current });
+        return;
+      }
       const offline = /network|fetch|connection/i.test(msg);
       setStatus({ state: offline ? 'offline' : 'error', error: offline ? 'Offline — will sync when you’re back online.' : msg, lastSyncedAt: lastSyncedAt.current });
     }
-  }, [uid, store.ready, store.getDb, store.mutate]);
+  }, [uid, store.ready, getDb, mutate, isPremium]);
 
   /** Runs a sync, or queues one more if a sync is already running. */
   const syncNow = useCallback(async () => {

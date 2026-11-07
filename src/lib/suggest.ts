@@ -17,6 +17,8 @@ type Ctx = {
   occasion: string;
   coords?: { lat: number; lon: number };
   avoidItemIds?: string[];
+  /** Use the offline picker even if AI is configured (e.g. free daily AI limit reached). */
+  basic?: boolean;
 };
 
 function lastWornMap(logs: WearLog[], itemsOfLog: Ctx['itemsOfLog']) {
@@ -28,7 +30,7 @@ function lastWornMap(logs: WearLog[], itemsOfLog: Ctx['itemsOfLog']) {
 export async function suggestOutfit(ctx: Ctx): Promise<Suggestion> {
   const owned = ctx.items.filter(wearable);
   if (owned.length < 2) throw new Error('Add at least two clothes to your closet first (items in the laundry or lent out are skipped).');
-  if (!URL_) return basicSuggestion(ctx, owned);
+  if (!URL_ || ctx.basic) return basicSuggestion(ctx, owned);
 
   const last = lastWornMap(ctx.logs, ctx.itemsOfLog);
   const body = {

@@ -5,9 +5,11 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { ItemThumb } from '../../components/ui';
 import { colorBreakdown, declutterCandidates, logStreak, monthlySpend } from '../../lib/insights';
 import { formatDay } from '../../lib/packing';
+import { usePremium } from '../../lib/premium';
 import { useMoney } from '../../lib/settings';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
+import { openPaywall } from '../../lib/usePaywall';
 import { CATEGORIES, inCloset, Item, todayKey } from '../../lib/types';
 
 export default function Stats() {
@@ -15,6 +17,7 @@ export default function Stats() {
   const { items, outfits, logs, itemsOfLog } = useStore();
   const wears = useWearCounts();
   const money = useMoney();
+  const { isPremium } = usePremium();
 
   const s = useMemo(() => {
     const owned = items.filter(inCloset);
@@ -67,6 +70,9 @@ export default function Stats() {
         {!s.perCat.length ? <Text style={ui.muted}>Add items to see a breakdown.</Text> : null}
       </Section>
 
+      <Strip title="Most worn" items={s.mostWorn} label={(i) => `${wears[i.id]}×`} />
+      {isPremium ? (
+        <>
       <Section title="By colour">
         {s.colors.slice(0, 8).map((r) => (
           <HBar key={r.name} label={r.name} value={r.count} max={maxColor} swatch={r.swatch ?? null} />
@@ -102,8 +108,11 @@ export default function Stats() {
         )}
       </Section>
 
-      <Strip title="Most worn" items={s.mostWorn} label={(i) => `${wears[i.id]}×`} />
       <Strip title="Best cost per wear" items={s.bestValue} label={(i) => money.format(s.cpw(i), true)} />
+        </>
+      ) : (
+        <LockedInsights />
+      )}
     </ScrollView>
   );
 }
@@ -215,6 +224,30 @@ function MonthlySpend({ months, format }: { months: Month[]; format: (n: number,
         <Text style={ui.muted}>Add prices to your items to see spending over time.</Text>
       )}
     </Section>
+  );
+}
+
+function LockedInsights() {
+  const { colors, ui } = useTheme();
+  const rows = ['Colour palette', 'Spending by month', 'Declutter suggestions', 'Best cost per wear'];
+  return (
+    <View style={[ui.card, { padding: 16, gap: 10, borderColor: colors.accentSoft, borderWidth: 2 }]}>
+      <Text style={ui.h2}>✨ Advanced insights</Text>
+      {rows.map((r) => (
+        <View key={r} style={[ui.row, { gap: 10 }]}>
+          <Text style={{ color: colors.accent }}>🔒</Text>
+          <Text style={ui.body}>{r}</Text>
+        </View>
+      ))}
+      <Text style={ui.muted}>See which colours you wear, what you spend each month, and what to let go of.</Text>
+      <Pressable
+        onPress={() => openPaywall('stats')}
+        style={{ backgroundColor: colors.accent, borderRadius: 12, paddingVertical: 12, alignItems: 'center' }}
+        accessibilityRole="button"
+      >
+        <Text style={{ color: colors.accentText, fontWeight: '600', fontSize: 15 }}>Unlock with Premium</Text>
+      </Pressable>
+    </View>
   );
 }
 

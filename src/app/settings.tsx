@@ -11,6 +11,8 @@ import { shiftTime } from '../lib/reminderPlan';
 import { ensureNotificationPermission, remindersSupported } from '../lib/reminders';
 import { deviceCurrency, ThemePref, useSettings } from '../lib/settings';
 import { useAuth } from '../lib/auth';
+import { usePremium } from '../lib/premium';
+import { openPaywall } from '../lib/usePaywall';
 import { useStore } from '../lib/store';
 import { supabaseConfigured } from '../lib/supabase';
 import { useSync } from '../lib/sync/SyncProvider';
@@ -34,6 +36,7 @@ export default function SettingsScreen() {
   const store = useStore();
   const { session } = useAuth();
   const { status: syncStatus } = useSync();
+  const premium = usePremium();
   const [busy, setBusy] = useState<'' | 'export' | 'import'>('');
   const [status, setStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const [canCutout, setCanCutout] = useState<boolean | null>(null);
@@ -102,11 +105,28 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 8, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
+      <Section title="Wearday Premium">
+        {premium.isPremium ? (
+          <>
+            <Text style={ui.body}>
+              ✨ You’re Premium{premium.source === 'dev' ? ' (simulated for testing)' : ''}
+              {premium.expiresAt ? ` · ${premium.willRenew ? 'renews' : 'ends'} ${new Date(premium.expiresAt).toLocaleDateString()}` : ''}
+            </Text>
+            <Button title="Manage" variant="secondary" onPress={() => openPaywall()} />
+          </>
+        ) : (
+          <>
+            <Text style={ui.muted}>Unlimited AI outfit ideas, full cloud sync, advanced stats, and unlimited trips and collections.</Text>
+            <Button title="✨ Go Premium" onPress={() => openPaywall()} />
+          </>
+        )}
+      </Section>
+
       {supabaseConfigured ? (
         <Section title="Account & sync">
           <Text style={ui.muted}>
             {session
-              ? `Signed in as ${session.user.email ?? 'you'} · ${syncStatus.state === 'syncing' ? 'syncing…' : syncStatus.state === 'idle' ? 'up to date' : syncStatus.state === 'off' ? 'starting…' : 'will retry'}`
+              ? `Signed in as ${session.user.email ?? 'you'} · ${syncStatus.state === 'syncing' ? 'syncing…' : syncStatus.state === 'idle' ? 'up to date' : syncStatus.state === 'off' ? 'starting…' : syncStatus.state === 'limit' ? 'paused (free plan limit)' : 'will retry'}`
               : 'Sign in to back up your wardrobe and use it on more than one phone.'}
           </Text>
           <Button title={session ? 'Manage account' : 'Sign in'} variant={session ? 'secondary' : 'primary'} onPress={() => router.push('/account')} />

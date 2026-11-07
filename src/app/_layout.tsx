@@ -6,6 +6,7 @@ import { AnalyticsSync } from '../components/AnalyticsSync';
 import { ReminderSync } from '../components/ReminderSync';
 import { analyticsConfigured } from '../lib/analytics';
 import { AuthProvider } from '../lib/auth';
+import { PremiumProvider } from '../lib/premium';
 import { remindersSupported } from '../lib/reminders';
 import { SettingsProvider } from '../lib/settings';
 import { StoreProvider } from '../lib/store';
@@ -18,9 +19,11 @@ export default function RootLayout() {
       <SettingsProvider>
         <StoreProvider>
           <AuthProvider>
-            <SyncProvider>
-              <AppStack />
-            </SyncProvider>
+            <PremiumProvider>
+              <SyncProvider>
+                <AppStack />
+              </SyncProvider>
+            </PremiumProvider>
           </AuthProvider>
         </StoreProvider>
       </SettingsProvider>
@@ -51,6 +54,7 @@ function AppStack() {
         <Stack.Screen name="suggest" options={{ title: 'Suggest an outfit' }} />
         <Stack.Screen name="log" options={{ title: 'Log outfit', presentation: 'modal' }} />
         <Stack.Screen name="trip/[id]" options={{ title: 'Trip' }} />
+        <Stack.Screen name="paywall" options={{ title: '', presentation: 'modal' }} />
         <Stack.Screen name="account" options={{ title: 'Account & sync' }} />
         <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />

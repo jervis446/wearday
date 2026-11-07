@@ -5,6 +5,9 @@ import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-na
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ChipRow, confirm, HeaderButton, ItemThumb } from '../../components/ui';
 import { track } from '../../lib/analytics';
+import { canAddTrip, FEATURE_REASON } from '../../lib/plans';
+import { usePremium } from '../../lib/premium';
+import { openPaywall } from '../../lib/usePaywall';
 import { addDays, EXTRA_SUGGESTIONS, formatDay, packProgress, suggestPacking, tripEnd } from '../../lib/packing';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
@@ -15,8 +18,12 @@ type Draft = Pick<Trip, 'name' | 'destination' | 'start' | 'nights'>;
 export default function TripScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { trips, saveTrip } = useStore();
+  const { isPremium } = usePremium();
   const trip = trips.find((t) => t.id === id);
 
+  if ((id === 'new' || !trip) && !canAddTrip(isPremium, trips.length)) {
+    return <LimitReached />;
+  }
   if (id === 'new' || !trip) {
     return (
       <SetupForm
@@ -29,6 +36,18 @@ export default function TripScreen() {
     );
   }
   return <TripDetail trip={trip} />;
+}
+
+function LimitReached() {
+  const { ui } = useTheme();
+  return (
+    <View style={[ui.screen, ui.pad, { gap: 12, justifyContent: 'center' }]}>
+      <Stack.Screen options={{ title: 'Plan a trip' }} />
+      <Text style={[ui.h2, { textAlign: 'center' }]}>Trips are a Premium feature</Text>
+      <Text style={[ui.muted, { textAlign: 'center' }]}>{FEATURE_REASON.trips}</Text>
+      <Button title="✨ Go Premium" onPress={() => openPaywall('trips')} />
+    </View>
+  );
 }
 
 function SetupForm({ onCreate }: { onCreate: (d: Draft) => void }) {

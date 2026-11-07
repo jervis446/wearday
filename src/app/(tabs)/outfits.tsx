@@ -4,8 +4,11 @@ import { FlatList, Pressable, Text, TextInput, useWindowDimensions, View } from 
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ChipRow, confirm, Empty } from '../../components/ui';
+import { canAddCollection } from '../../lib/plans';
+import { usePremium } from '../../lib/premium';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
+import { openPaywall } from '../../lib/usePaywall';
 
 const ALL = 'All outfits';
 const NEW = '+ New collection';
@@ -14,6 +17,7 @@ export default function Outfits() {
   const { colors, ui } = useTheme();
   const { outfits, items, logs, collections, saveCollection, deleteCollection } = useStore();
   const { width } = useWindowDimensions();
+  const { isPremium } = usePremium();
   const size = Math.floor((Math.min(width, 700) - 16 * 2 - 12) / 2);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState<{ mode: 'new' | 'rename'; text: string } | null>(null);
@@ -55,7 +59,10 @@ export default function Outfits() {
               options={[ALL, ...byName.map((c) => c.name), NEW]}
               selected={[selected?.name ?? ALL]}
               onToggle={(label) => {
-                if (label === NEW) return setNameDraft({ mode: 'new', text: '' });
+                if (label === NEW) {
+                  if (!canAddCollection(isPremium, collections.length)) return openPaywall('collections');
+                  return setNameDraft({ mode: 'new', text: '' });
+                }
                 setNameDraft(null);
                 setSelectedId(label === ALL ? null : (byName.find((c) => c.name === label)?.id ?? null));
               }}

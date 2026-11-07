@@ -1,15 +1,19 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import { OutfitCanvas } from '../components/OutfitCanvas';
 import { Button, ChipRow } from '../components/ui';
+import { aiUsedToday, recordAiUse } from '../lib/aiQuota';
 import { track } from '../lib/analytics';
+import { canUseAi, FREE_LIMITS } from '../lib/plans';
+import { usePremium } from '../lib/premium';
 import { autoLayout } from '../lib/outfitLayout';
 import { useStore, useWearCounts } from '../lib/store';
 import { aiConfigured, Suggestion, suggestOutfit } from '../lib/suggest';
 import { useTheme } from '../lib/theme';
+import { openPaywall } from '../lib/usePaywall';
 import { Item } from '../lib/types';
 
 const OCCASIONS = ['Everyday', 'Work', 'Date night', 'Party', 'Sport', 'Travel'];
@@ -26,6 +30,13 @@ export default function Suggest() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<Suggestion | null>(null);
+  const { isPremium } = usePremium();
+  const [aiUsed, setAiUsed] = useState(0);
+  const [limitHit, setLimitHit] = useState(false);
+
+  useEffect(() => {
+    aiUsedToday().then(setAiUsed);
+  }, []);
 
   const getCoords = async () => {
     if (!useWeather) return undefined;
@@ -41,13 +52,19 @@ export default function Suggest() {
     }
   };
 
-  const run = async () => {
-    setLoading(true);
+  const run = async (basic = false) => {
     setError('');
+    if (aiConfigured && !basic && !canUseAi(isPremium, await aiUsedToday())) {
+      setLimitHit(true);
+      return;
+    }
+    setLimitHit(false);
+    setLoading(true);
     try {
       const coords = await getCoords();
-      const s = await suggestOutfit({ items, logs, itemsOfLog, wears, occasion, coords, avoidItemIds: result?.itemIds });
+      const s = await suggestOutfit({ items, logs, itemsOfLog, wears, occasion, coords, avoidItemIds: result?.itemIds, basic });
       setResult(s);
+      if (s.source === 'ai' && !isPremium) setAiUsed(await recordAiUse());
       track('suggestion_requested', { source: s.source, occasion, weather: !!s.weather, ok: true });
     } catch (e) {
       setError((e as Error).message);
@@ -79,7 +96,20 @@ export default function Suggest() {
         <Switch value={useWeather} onValueChange={setUseWeather} trackColor={{ true: colors.accent }} thumbColor={colors.card} />
       </View>
 
-      <Button title={loading ? 'Thinking…' : result ? 'Try another' : '✨ Suggest an outfit'} onPress={loading ? () => {} : run} />
+      <Button title={loading ? 'Thinking…' : result ? 'Try another' : '✨ Suggest an outfit'} onPress={loading ? () => {} : () => run()} />
+      {aiConfigured && !isPremium && !limitHit ? (
+        <Text style={[ui.muted, { textAlign: 'center' }]}>
+          {Math.max(0, FREE_LIMITS.aiPerDay - aiUsed)} of {FREE_LIMITS.aiPerDay} free AI suggestion left today
+        </Text>
+      ) : null}
+      {limitHit ? (
+        <View style={[ui.card, { padding: 14, gap: 10, backgroundColor: colors.accentSoft, borderColor: colors.accentSoft }]}>
+          <Text style={[ui.body, { fontWeight: '700' }]}>You’ve used today’s free AI suggestion</Text>
+          <Text style={ui.muted}>Your free AI suggestion comes back tomorrow. Go Premium for unlimited AI ideas, or get a basic suggestion now (always free).</Text>
+          <Button title="✨ Go Premium" onPress={() => openPaywall('ai')} />
+          <Button title="Get a basic suggestion" variant="secondary" onPress={() => run(true)} />
+        </View>
+      ) : null}
       {!aiConfigured ? (
         <Text style={ui.muted}>
           Using basic suggestions. Set EXPO_PUBLIC_SUGGEST_URL to your Cloudflare Worker to turn on AI suggestions.

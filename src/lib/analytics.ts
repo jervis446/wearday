@@ -35,7 +35,9 @@ export type EventName =
   | 'outfit_shared'
   | 'backup_exported'
   | 'backup_restored'
-  | 'signed_in';
+  | 'signed_in'
+  | 'paywall_viewed'
+  | 'premium_purchased';
 
 export function track(event: EventName, props?: Props) {
   client?.capture(event, safeProps(props));

@@ -8,6 +8,7 @@ import { Provider, useAuth } from '../lib/auth';
 import { supabaseConfigured } from '../lib/supabase';
 import { clearSyncState, useSync } from '../lib/sync/SyncProvider';
 import { useTheme } from '../lib/theme';
+import { openPaywall } from '../lib/usePaywall';
 
 /**
  * Which sign-in options this build offers, e.g. "apple,google,email".
@@ -225,7 +226,7 @@ function SignedIn() {
   const statusText =
     status.state === 'syncing'
       ? 'Syncing…'
-      : status.state === 'error' || status.state === 'offline'
+      : status.state === 'error' || status.state === 'offline' || status.state === 'limit'
         ? status.error
         : `Synced ${timeAgo(status.lastSyncedAt)}`;
 
@@ -242,7 +243,11 @@ function SignedIn() {
           <Text style={[ui.body, { flex: 1, color: status.state === 'error' ? colors.danger : colors.text }]}>{statusText}</Text>
         </View>
         <Text style={ui.muted}>Your wardrobe syncs automatically when you make changes and when you open the app.</Text>
-        <Button title="Sync now" variant="secondary" onPress={() => syncNow()} />
+        {status.state === 'limit' ? (
+          <Button title="✨ Go Premium" onPress={() => openPaywall('sync')} />
+        ) : (
+          <Button title="Sync now" variant="secondary" onPress={() => syncNow()} />
+        )}
       </Section>
 
       <Button

@@ -3,13 +3,17 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 
 import { Button, Empty } from '../../components/ui';
 import { formatDay, packProgress, tripEnd } from '../../lib/packing';
+import { canAddTrip } from '../../lib/plans';
+import { usePremium } from '../../lib/premium';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { todayKey, Trip } from '../../lib/types';
+import { openPaywall } from '../../lib/usePaywall';
 
 export default function Trips() {
   const { colors, ui } = useTheme();
   const { trips } = useStore();
+  const { isPremium } = usePremium();
   const today = todayKey();
   const upcoming = trips.filter((t) => tripEnd(t) >= today).sort((a, b) => a.start.localeCompare(b.start));
   const past = trips.filter((t) => tripEnd(t) < today).sort((a, b) => b.start.localeCompare(a.start));
@@ -21,7 +25,12 @@ export default function Trips() {
         data={rows}
         keyExtractor={(r) => (typeof r === 'string' ? r : r.id)}
         contentContainerStyle={{ padding: 16, gap: 10, maxWidth: 700, width: '100%', alignSelf: 'center' }}
-        ListHeaderComponent={<Button title="+ Plan a trip" onPress={() => router.push('/trip/new')} />}
+        ListHeaderComponent={
+          <Button
+            title={canAddTrip(isPremium, trips.length) ? '+ Plan a trip' : '+ Plan a trip  ✨ Premium'}
+            onPress={() => (canAddTrip(isPremium, trips.length) ? router.push('/trip/new') : openPaywall('trips'))}
+          />
+        }
         ListEmptyComponent={
           <Empty title="No trips yet" hint="Plan a trip to get a packing list made from your own wardrobe." />
         }
