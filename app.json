@@ -17,7 +17,12 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.wearday.app"
+      "package": "com.wearday.app",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -30,13 +35,19 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow access to your photos to add clothes and outfit selfies.",
-          "cameraPermission": "Allow camera access to photograph clothes and outfit selfies."
+          "cameraPermission": "Allow camera access to photograph clothes and outfit selfies.",
+          "microphonePermission": false
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Wearday uses your approximate location to check today’s weather for outfit suggestions."
+          "locationWhenInUsePermission": "Wearday uses your approximate location to check today’s weather for outfit suggestions.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "locationFullAccuracyPermission": false,
+          "isIosReducedAccuracyByDefault": true
         }
       ],
       "expo-localization",
