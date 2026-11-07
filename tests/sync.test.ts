@@ -1,0 +1,162 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+
+import { emptySyncState, fingerprint, mergeRemote, runSync, type Photos, type PushDoc, type Remote, type RemoteDoc, type SyncState } from '../src/lib/sync/engine.ts';
+
+/** In-memory stand-in for Supabase with the same rules as push_docs (newer edit wins). */
+class FakeCloud implements Remote {
+  rows = new Map<string, RemoteDoc>();
+  photos = new Map<string, Uint8Array>();
+  seq = 0;
+  pushes = 0;
+  async pull(after: number, limit: number) {
+    return [...this.rows.values()].filter((r) => r.seq > after).sort((a, b) => a.seq - b.seq).slice(0, limit).map((r) => structuredClone(r));
+  }
+  async push(docs: PushDoc[]) {
+    this.pushes++;
+    for (const d of docs) {
+      const k = `${d.kind}:${d.id}`;
+      const cur = this.rows.get(k);
+      if (cur && d.updated_at <= cur.client_updated_at) continue;
+      this.rows.set(k, { kind: d.kind, id: d.id, data: d.deleted ? null : structuredClone(d.data), deleted: d.deleted, client_updated_at: d.updated_at, seq: ++this.seq });
+    }
+  }
+  async uploadPhoto(name: string, bytes: Uint8Array) {
+    if (!this.photos.has(name)) this.photos.set(name, bytes);
+  }
+}
+
+/** A phone: its own data, its own photo folder, its own sync state. */
+class Device {
+  db: any = { items: [], outfits: [], logs: [], trips: [], collections: [] };
+  files = new Map<string, Uint8Array>();
+  state: SyncState = emptySyncState();
+  name: string;
+  cloud: FakeCloud;
+  constructor(name: string, cloud: FakeCloud) {
+    this.name = name;
+    this.cloud = cloud;
+  }
+  photos: Photos = {
+    nameOf: (uri) => uri.split('/').pop() ?? '',
+    localUri: (n) => `file:///${this.name}/images/${n}`,
+    hasLocal: (n) => this.files.has(n),
+    read: async (uri) => this.files.get(uri.split('/').pop()!),
+    download: async (n) => {
+      const b = this.cloud.photos.get(n);
+      if (!b) throw new Error('404');
+      this.files.set(n, b);
+    },
+  };
+  addPhoto(n: string, bytes: number[]) {
+    this.files.set(n, new Uint8Array(bytes));
+    return `file:///${this.name}/images/${n}`;
+  }
+  async sync(now: number) {
+    const r = await runSync({ getDb: () => this.db, apply: (fn) => (this.db = fn(this.db)), state: this.state, remote: this.cloud, photos: this.photos, now: () => now });
+    this.state = r.state;
+    return r;
+  }
+}
+
+const item = (id: string, imageUri = '', extra = {}) => ({ id, name: id, category: 'Tops', imageUri, seasons: [], tags: [], wishlist: false, createdAt: 1, ...extra });
+
+test('an item with its photo travels from one phone to another', async () => {
+  const cloud = new FakeCloud();
+  const a = new Device('a', cloud), b = new Device('b', cloud);
+  a.db.items.push(item('tee', a.addPhoto('tee.jpg', [1, 2, 3])));
+  const ra = await a.sync(100);
+  assert.deepEqual([ra.pushed, ra.photosUp], [1, 1]);
+  const rb = await b.sync(101);
+  assert.equal(rb.photosDown, 1);
+  assert.equal(b.db.items[0].imageUri, 'file:///b/images/tee.jpg');
+  assert.deepEqual([...b.files.get('tee.jpg')!], [1, 2, 3]);
+  // Nothing left to do on either side
+  assert.equal((await a.sync(102)).pushed, 0);
+  assert.equal((await b.sync(103)).pushed, 0);
+});
+
+test('edits and deletes go both ways', async () => {
+  const cloud = new FakeCloud();
+  const a = new Device('a', cloud), b = new Device('b', cloud);
+  a.db.items.push(item('tee'), item('jeans', '', { category: 'Bottoms' }));
+  await a.sync(100);
+  await b.sync(101);
+  b.db.items = b.db.items.map((i: any) => (i.id === 'tee' ? { ...i, name: 'Blue tee' } : i));
+  b.db.outfits.push({ id: 'o1', name: 'Fit', pieces: [{ itemId: 'tee', x: 0.5, y: 0.5, scale: 1 }], tags: [], createdAt: 1 });
+  await b.sync(102);
+  await a.sync(103);
+  assert.equal(a.db.items.find((i: any) => i.id === 'tee').name, 'Blue tee');
+  assert.equal(a.db.outfits[0].name, 'Fit');
+
+  a.db.items = a.db.items.filter((i: any) => i.id !== 'jeans');
+  await a.sync(104);
+  await b.sync(105);
+  assert.deepEqual(b.db.items.map((i: any) => i.id), ['tee']);
+  assert.equal(cloud.rows.get('item:jeans')!.deleted, true);
+});
+
+test('unsynced local edits are never overwritten by a pull; the later sync wins', async () => {
+  const cloud = new FakeCloud();
+  const a = new Device('a', cloud), b = new Device('b', cloud);
+  a.db.items.push(item('tee'));
+  await a.sync(100);
+  await b.sync(101);
+  // Both edit offline
+  a.db.items[0] = { ...a.db.items[0], name: 'From A' };
+  b.db.items[0] = { ...b.db.items[0], name: 'From B' };
+  await a.sync(200);
+  await b.sync(300); // B pulls A's edit but keeps its own unsynced edit, then pushes (newer)
+  assert.equal(b.db.items[0].name, 'From B');
+  await a.sync(400);
+  assert.equal(a.db.items[0].name, 'From B');
+  assert.equal(cloud.rows.get('item:tee')!.data!.name, 'From B');
+});
+
+test('first sign-in on two phones that both had data merges them', async () => {
+  const cloud = new FakeCloud();
+  const a = new Device('a', cloud), b = new Device('b', cloud);
+  a.db.items.push(item('a-only'));
+  b.db.items.push(item('b-only'));
+  b.db.trips.push({ id: 't1', name: 'Goa', start: '2026-12-01', nights: 3, itemIds: ['b-only'], packed: [], extras: [], createdAt: 1 });
+  await a.sync(100);
+  await b.sync(101);
+  await a.sync(102);
+  const ids = (d: Device) => d.db.items.map((i: any) => i.id).sort();
+  assert.deepEqual(ids(a), ['a-only', 'b-only']);
+  assert.deepEqual(ids(b), ['a-only', 'b-only']);
+  assert.equal(a.db.trips[0].name, 'Goa');
+});
+
+test('a local delete of something edited elsewhere: the edit wins, nothing is lost silently', async () => {
+  const cloud = new FakeCloud();
+  const a = new Device('a', cloud), b = new Device('b', cloud);
+  a.db.items.push(item('tee'));
+  await a.sync(100);
+  await b.sync(101);
+  b.db.items[0] = { ...b.db.items[0], name: 'Renamed' };
+  await b.sync(102);
+  a.db.items = []; // deleted on A before seeing B's edit
+  await a.sync(103); // pulls B's edit (A has no local copy) → restored, then pushes nothing stale
+  assert.equal(a.db.items[0]?.name, 'Renamed');
+});
+
+test('large wardrobes push in batches and pull in pages', async () => {
+  const cloud = new FakeCloud();
+  const a = new Device('a', cloud), b = new Device('b', cloud);
+  for (let i = 0; i < 1500; i++) a.db.items.push(item(`i${i}`));
+  await a.sync(100);
+  assert.ok(cloud.pushes >= 4);
+  await b.sync(101);
+  assert.equal(b.db.items.length, 1500);
+});
+
+test('mergeRemote keeps unsynced local edits and fingerprint is order-independent', () => {
+  const photos: Photos = { nameOf: (u) => u, localUri: (n) => n, hasLocal: () => true, read: async () => undefined, download: async () => {} };
+  const db: any = { items: [item('tee', '', { name: 'local edit' })], outfits: [], logs: [], trips: [], collections: [] };
+  const docs: RemoteDoc[] = [{ kind: 'item', id: 'tee', data: { ...item('tee'), name: 'remote' }, deleted: false, client_updated_at: 5, seq: 1 }];
+  const r = mergeRemote(db, docs, { 'item:tee': 'old-fingerprint' }, photos);
+  assert.equal(r.db.items[0].name, 'local edit');
+  assert.equal(fingerprint({ a: 1, b: [1, 2] }), fingerprint({ b: [1, 2], a: 1 }));
+  assert.notEqual(fingerprint({ a: 1 }), fingerprint({ a: 2 }));
+});
