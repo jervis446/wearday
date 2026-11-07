@@ -160,3 +160,41 @@ test('mergeRemote keeps unsynced local edits and fingerprint is order-independen
   assert.equal(fingerprint({ a: 1, b: [1, 2] }), fingerprint({ b: [1, 2], a: 1 }));
   assert.notEqual(fingerprint({ a: 1 }), fingerprint({ a: 2 }));
 });
+
+test('a pull that changes nothing returns the same data object (no re-render)', () => {
+  const photos: Photos = { nameOf: (u) => u, localUri: (n) => n, hasLocal: () => true, read: async () => undefined, download: async () => {} };
+  const tee = item('tee');
+  const db: any = { items: [tee], outfits: [], logs: [], trips: [], collections: [] };
+  const fp = fingerprint(tee);
+  const docs: RemoteDoc[] = [
+    { kind: 'item', id: 'tee', data: { ...tee }, deleted: false, client_updated_at: 5, seq: 1 },
+    { kind: 'item', id: 'gone', data: null, deleted: true, client_updated_at: 5, seq: 2 },
+  ];
+  const r = mergeRemote(db, docs, { 'item:tee': fp }, photos);
+  assert.equal(r.db, db);
+  assert.equal(r.applied['item:tee'], fp);
+});
+
+test('photos stored inside the data (web) still upload and arrive', async () => {
+  const cloud = new FakeCloud();
+  // Web-like phone: the photo is a data URI in the record; its cloud name is derived from it,
+  // and localUri(name) does NOT give back the original string.
+  const cache = new Map<string, string>();
+  const web: Photos = {
+    nameOf: (u) => (u.startsWith('sb:') ? u.slice(3) : u.startsWith('data:') ? `w${u.length}.jpg` : u),
+    localUri: (n) => cache.get(n) ?? `sb:${n}`,
+    hasLocal: (n) => cache.has(n),
+    read: async (u) => (u.startsWith('data:') ? new Uint8Array([7, 7, 7]) : undefined),
+    download: async (n) => void cache.set(n, `data:image/jpeg;base64,BBB#sb=${n}`),
+  };
+  const a: any = { db: { items: [item('tee', 'data:image/jpeg;base64,AAAA')], outfits: [], logs: [], trips: [], collections: [] }, state: emptySyncState() };
+  const r = await runSync({ getDb: () => a.db, apply: (fn) => (a.db = fn(a.db)), state: a.state, remote: cloud, photos: web, now: () => 1 });
+  assert.equal(r.photosUp, 1);
+  const name = `w${'data:image/jpeg;base64,AAAA'.length}.jpg`;
+  assert.deepEqual([...cloud.photos.get(name)!], [7, 7, 7]);
+
+  const b = new Device('b', cloud);
+  await b.sync(2);
+  assert.equal(b.db.items[0].imageUri, `file:///b/images/${name}`);
+  assert.ok(b.files.has(name));
+});

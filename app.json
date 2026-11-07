@@ -8,7 +8,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wearday.app"
+      "bundleIdentifier": "com.wearday.app",
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -57,7 +58,9 @@
           "icon": "./assets/android-icon-monochrome.png",
           "color": "#C2603E"
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "scheme": "wearday",
     "splash": {

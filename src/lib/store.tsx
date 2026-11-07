@@ -21,6 +21,10 @@ type Store = Db & {
   deleteTrip: (id: string) => void;
   saveCollection: (c: Omit<Collection, 'id' | 'createdAt'> & { id?: string }) => Collection;
   deleteCollection: (id: string) => void;
+  /** The latest data, including changes not yet rendered. */
+  getDb: () => Db;
+  /** Applies a change computed from the latest data (used by sync). */
+  mutate: (fn: (db: Db) => Db) => void;
   /** Replaces all data (used by restore), then deletes photos the old data used. */
   replaceAll: (db: Db) => void;
 };
@@ -28,7 +32,16 @@ type Store = Db & {
 const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [db, setDb] = useState<Db>(empty);
+  const [db, setDbState] = useState<Db>(empty);
+  // Always-current copy of the data. Every change goes through setDb below, which updates this
+  // immediately, so code that reads right after a change (sync, file cleanup) never sees stale data.
+  const dbRef = useRef<Db>(empty);
+  const setDb = useCallback((next: Db | ((d: Db) => Db)) => {
+    const value = typeof next === 'function' ? next(dbRef.current) : next;
+    if (value === dbRef.current) return;
+    dbRef.current = value;
+    setDbState(value);
+  }, []);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -41,13 +54,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {})
       .finally(() => setReady(true));
-  }, []);
+  }, [setDb]);
 
-  // Latest data for side effects (deleting files) that must not run inside state updaters.
-  const dbRef = useRef(db);
-  useEffect(() => {
-    dbRef.current = db;
-  }, [db]);
 
   useEffect(() => {
     if (ready) AsyncStorage.setItem(KEY, JSON.stringify(db)).catch(() => {});
@@ -65,7 +73,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ...d, items: upsert(d.items, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
     });
     return saved;
-  }, []);
+  }, [setDb]);
 
   const deleteItem = useCallback((id: string) => {
     deleteImage(dbRef.current.items.find((i) => i.id === id)?.imageUri);
@@ -76,7 +84,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       logs: d.logs.map((l) => ({ ...l, itemIds: l.itemIds.filter((x) => x !== id) })),
       trips: d.trips.map((t) => ({ ...t, itemIds: t.itemIds.filter((x) => x !== id), packed: t.packed.filter((x) => x !== id) })),
     }));
-  }, []);
+  }, [setDb]);
 
   const saveOutfit: Store['saveOutfit'] = useCallback((input) => {
     const saved: Outfit = { ...input, id: input.id ?? uid(), createdAt: Date.now() };
@@ -85,7 +93,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ...d, outfits: upsert(d.outfits, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
     });
     return saved;
-  }, []);
+  }, [setDb]);
 
   const deleteOutfit = useCallback((id: string) => {
     setDb((d) => ({
@@ -94,7 +102,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       logs: d.logs.map((l) => (l.outfitId === id ? { ...l, outfitId: undefined } : l)),
       collections: d.collections.map((c) => ({ ...c, outfitIds: c.outfitIds.filter((x) => x !== id) })),
     }));
-  }, []);
+  }, [setDb]);
 
   const saveLog: Store['saveLog'] = useCallback((input) => {
     const saved: WearLog = { ...input, id: input.id ?? uid() };
@@ -102,12 +110,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (old?.selfieUri && old.selfieUri !== saved.selfieUri) deleteImage(old.selfieUri);
     setDb((d) => ({ ...d, logs: upsert(d.logs, saved) }));
     return saved;
-  }, []);
+  }, [setDb]);
 
   const deleteLog = useCallback((id: string) => {
     deleteImage(dbRef.current.logs.find((l) => l.id === id)?.selfieUri);
     setDb((d) => ({ ...d, logs: d.logs.filter((l) => l.id !== id) }));
-  }, []);
+  }, [setDb]);
 
   const saveTrip: Store['saveTrip'] = useCallback((input) => {
     const saved: Trip = { ...input, id: input.id ?? uid(), createdAt: Date.now() };
@@ -116,11 +124,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ...d, trips: upsert(d.trips, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
     });
     return saved;
-  }, []);
+  }, [setDb]);
 
   const deleteTrip = useCallback((id: string) => {
     setDb((d) => ({ ...d, trips: d.trips.filter((t) => t.id !== id) }));
-  }, []);
+  }, [setDb]);
 
   const saveCollection: Store['saveCollection'] = useCallback((input) => {
     const saved: Collection = { ...input, id: input.id ?? uid(), createdAt: Date.now() };
@@ -129,17 +137,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ...d, collections: upsert(d.collections, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
     });
     return saved;
-  }, []);
+  }, [setDb]);
 
   const deleteCollection = useCallback((id: string) => {
     setDb((d) => ({ ...d, collections: d.collections.filter((c) => c.id !== id) }));
-  }, []);
+  }, [setDb]);
+
+  const getDb = useCallback(() => dbRef.current, []);
+  const mutate = useCallback((fn: (d: Db) => Db) => setDb(fn), [setDb]);
 
   const replaceAll = useCallback((next: Db) => {
     const merged: Db = { ...empty, ...next };
     setDb(merged);
     cleanupImages([...merged.items.map((i) => i.imageUri), ...merged.logs.map((l) => l.selfieUri)]);
-  }, []);
+  }, [setDb]);
 
   const itemsOfLog = useCallback(
     (log: WearLog) => {
@@ -165,8 +176,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       saveCollection,
       deleteCollection,
       replaceAll,
+      getDb,
+      mutate,
     }),
-    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, saveTrip, deleteTrip, saveCollection, deleteCollection, replaceAll],
+    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, saveTrip, deleteTrip, saveCollection, deleteCollection, replaceAll, getDb, mutate],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

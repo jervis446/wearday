@@ -113,11 +113,13 @@ function records(db: Db, kind: Kind): Record<string, unknown>[] {
 
 /** Every local record in portable form with its fingerprint. */
 export function snapshot(db: Db, photos: Photos) {
-  const out = new Map<string, { kind: Kind; id: string; data: Record<string, unknown>; fp: string }>();
+  const out = new Map<string, { kind: Kind; id: string; data: Record<string, unknown>; fp: string; photoUri?: string }>();
   for (const kind of KINDS)
     for (const rec of records(db, kind)) {
       const data = toPortable(kind, rec, photos);
-      out.set(key(kind, rec.id as string), { kind, id: rec.id as string, data, fp: fingerprint(data) });
+      const field = PHOTO_FIELDS[kind];
+      const photoUri = field && typeof rec[field] === 'string' ? (rec[field] as string) : undefined;
+      out.set(key(kind, rec.id as string), { kind, id: rec.id as string, data, fp: fingerprint(data), photoUri });
     }
   return out;
 }
@@ -131,6 +133,8 @@ export function snapshot(db: Db, photos: Photos) {
  */
 export function mergeRemote(db: Db, docs: RemoteDoc[], synced: Record<string, string>, photos: Photos) {
   const applied: Record<string, string | null> = {};
+  /** Keys that were already identical locally (no change to apply). */
+  const unchanged: Record<string, true> = {};
   const next: Db = { ...db };
   const lists: Partial<Record<keyof Db, Record<string, unknown>[]>> = {};
   const list = (kind: Kind) => (lists[LIST[kind]] ??= [...records(db, kind)]);
@@ -148,6 +152,7 @@ export function mergeRemote(db: Db, docs: RemoteDoc[], synced: Record<string, st
       if (localFp === remoteFp) {
         // Already identical (often our own push coming back): nothing to change.
         applied[k] = remoteFp;
+        unchanged[k] = true;
         continue;
       }
       const locallyEdited = localFp !== synced[k];
@@ -155,6 +160,7 @@ export function mergeRemote(db: Db, docs: RemoteDoc[], synced: Record<string, st
     }
     if (d.deleted || !d.data) {
       if (idx >= 0) arr.splice(idx, 1);
+      else unchanged[k] = true;
       applied[k] = null;
     } else {
       const local = fromPortable(d.kind, { ...d.data, id: d.id }, photos);
@@ -163,6 +169,8 @@ export function mergeRemote(db: Db, docs: RemoteDoc[], synced: Record<string, st
       applied[k] = remoteFp;
     }
   }
+  const changed = Object.values(applied).length > 0 && Object.keys(applied).some((k) => !(k in unchanged));
+  if (!changed) return { db, applied };
   for (const [name, arr] of Object.entries(lists)) (next as Record<string, unknown>)[name] = arr;
   return { db: next, applied };
 }
@@ -229,8 +237,9 @@ export async function runSync(opts: {
   // 4. Push local changes: edited/new records, and deletions.
   const snap = snapshot(getDb(), photos);
   const stamp = now();
-  const push: (PushDoc & { fp: string | null })[] = [];
-  for (const [k, r] of snap) if (state.synced[k] !== r.fp) push.push({ kind: r.kind, id: r.id, data: r.data, deleted: false, updated_at: stamp, fp: r.fp });
+  const push: (PushDoc & { fp: string | null; photoUri?: string })[] = [];
+  for (const [k, r] of snap)
+    if (state.synced[k] !== r.fp) push.push({ kind: r.kind, id: r.id, data: r.data, deleted: false, updated_at: stamp, fp: r.fp, photoUri: r.photoUri });
   for (const k of Object.keys(state.synced)) {
     if (snap.has(k)) continue;
     const [kind, ...rest] = k.split(':');
@@ -240,10 +249,9 @@ export async function runSync(opts: {
   // Photos first, so other devices never see a record whose photo isn't there yet.
   for (const p of push) {
     const name = photoName(p.kind, p.data);
-    if (!name || uploaded.has(name)) continue;
-    const kind = p.kind;
-    const localUri = fromPortable(kind, p.data!, photos)[PHOTO_FIELDS[kind]!] as string;
-    const bytes = await photos.read(localUri);
+    if (!name || uploaded.has(name) || !p.photoUri) continue;
+    // Read from where the photo really is on this device (not rebuilt from its cloud name).
+    const bytes = await photos.read(p.photoUri);
     if (!bytes) continue;
     await remote.uploadPhoto(name, bytes, contentType(name));
     uploaded.add(name);
@@ -252,7 +260,7 @@ export async function runSync(opts: {
 
   for (let i = 0; i < push.length; i += PUSH_BATCH) {
     const batch = push.slice(i, i + PUSH_BATCH);
-    await remote.push(batch.map(({ fp: _fp, ...doc }) => doc));
+    await remote.push(batch.map(({ fp: _fp, photoUri: _uri, ...doc }) => doc));
     for (const p of batch) {
       const k = key(p.kind, p.id);
       if (p.fp === null) delete state.synced[k];

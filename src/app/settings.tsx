@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, Switch, Text, View } from 'react-native';
 
@@ -8,7 +9,10 @@ import { CURRENCIES } from '../lib/moneyFormat';
 import { shiftTime } from '../lib/reminderPlan';
 import { ensureNotificationPermission, remindersSupported } from '../lib/reminders';
 import { deviceCurrency, ThemePref, useSettings } from '../lib/settings';
+import { useAuth } from '../lib/auth';
 import { useStore } from '../lib/store';
+import { supabaseConfigured } from '../lib/supabase';
+import { useSync } from '../lib/sync/SyncProvider';
 import { useTheme } from '../lib/theme';
 
 const THEMES: Record<string, ThemePref> = { 'Match phone': 'system', Light: 'light', Dark: 'dark' };
@@ -27,6 +31,8 @@ export default function SettingsScreen() {
   const { colors, ui } = useTheme();
   const { settings, update, replace } = useSettings();
   const store = useStore();
+  const { session } = useAuth();
+  const { status: syncStatus } = useSync();
   const [busy, setBusy] = useState<'' | 'export' | 'import'>('');
   const [status, setStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const [canCutout, setCanCutout] = useState<boolean | null>(null);
@@ -93,6 +99,17 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 8, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
+      {supabaseConfigured ? (
+        <Section title="Account & sync">
+          <Text style={ui.muted}>
+            {session
+              ? `Signed in as ${session.user.email ?? 'you'} · ${syncStatus.state === 'syncing' ? 'syncing…' : syncStatus.state === 'idle' ? 'up to date' : syncStatus.state === 'off' ? 'starting…' : 'will retry'}`
+              : 'Sign in to back up your wardrobe and use it on more than one phone.'}
+          </Text>
+          <Button title={session ? 'Manage account' : 'Sign in'} variant={session ? 'secondary' : 'primary'} onPress={() => router.push('/account')} />
+        </Section>
+      ) : null}
+
       <Section title="Appearance">
         <ChipRow options={Object.keys(THEMES)} selected={[themeLabel]} onToggle={(k) => update({ theme: THEMES[k] })} scroll={false} />
       </Section>

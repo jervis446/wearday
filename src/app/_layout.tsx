@@ -3,9 +3,11 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ReminderSync } from '../components/ReminderSync';
+import { AuthProvider } from '../lib/auth';
 import { remindersSupported } from '../lib/reminders';
 import { SettingsProvider } from '../lib/settings';
 import { StoreProvider } from '../lib/store';
+import { SyncProvider } from '../lib/sync/SyncProvider';
 import { useTheme } from '../lib/theme';
 
 export default function RootLayout() {
@@ -13,7 +15,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SettingsProvider>
         <StoreProvider>
-          <AppStack />
+          <AuthProvider>
+            <SyncProvider>
+              <AppStack />
+            </SyncProvider>
+          </AuthProvider>
         </StoreProvider>
       </SettingsProvider>
     </GestureHandlerRootView>
@@ -42,6 +48,8 @@ function AppStack() {
         <Stack.Screen name="suggest" options={{ title: 'Suggest an outfit' }} />
         <Stack.Screen name="log" options={{ title: 'Log outfit', presentation: 'modal' }} />
         <Stack.Screen name="trip/[id]" options={{ title: 'Trip' }} />
+        <Stack.Screen name="account" options={{ title: 'Account & sync' }} />
+        <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
       </Stack>
     </>
