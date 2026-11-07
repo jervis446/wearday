@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
 import { Button, ChipRow } from '../../components/ui';
+import { track } from '../../lib/analytics';
 import { autoTag } from '../../lib/autotag';
 import { canRemoveBackground, removeBackground } from '../../lib/cutout';
 import { chooseImage } from '../../lib/images';
@@ -95,6 +96,7 @@ export default function EditItem() {
       notes: notes.trim() || undefined,
       wishlist,
     });
+    if (!existing) track('item_added', { category, wishlist, cutout: !!originalUri, auto_tagged: !!autoNote });
     router.back();
   };
 

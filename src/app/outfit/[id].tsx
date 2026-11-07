@@ -4,6 +4,7 @@ import { FlatList, Pressable, ScrollView, Text, TextInput, useWindowDimensions, 
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ChipRow, HeaderButton, ItemThumb, confirm } from '../../components/ui';
+import { track } from '../../lib/analytics';
 import { SLOT } from '../../lib/outfitLayout';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
@@ -51,6 +52,7 @@ export default function OutfitBuilder() {
       if (want && !has) saveCollection({ ...c, outfitIds: [...c.outfitIds, saved.id] });
       if (!want && has) saveCollection({ ...c, outfitIds: c.outfitIds.filter((x) => x !== saved.id) });
     }
+    if (!existing) track('outfit_saved', { pieces: pieces.length, source: 'builder' });
     router.back();
   };
 

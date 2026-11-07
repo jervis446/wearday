@@ -4,6 +4,7 @@ import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, Empty } from '../../components/ui';
+import { track } from '../../lib/analytics';
 import { shareViewAsImage } from '../../lib/shareImage';
 import { useStore } from '../../lib/store';
 import { light, useTheme } from '../../lib/theme';
@@ -29,6 +30,7 @@ export default function ShareOutfit() {
     setMessage(null);
     try {
       const how = await shareViewAsImage(cardRef, outfit.name);
+      track('outfit_shared', { how });
       if (how === 'downloaded') setMessage({ text: 'Image downloaded.' });
     } catch (e) {
       setMessage({ text: (e as Error).message || 'Couldn’t create the image.', error: true });

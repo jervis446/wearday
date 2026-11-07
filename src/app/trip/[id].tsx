@@ -4,6 +4,7 @@ import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-na
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ChipRow, confirm, HeaderButton, ItemThumb } from '../../components/ui';
+import { track } from '../../lib/analytics';
 import { addDays, EXTRA_SUGGESTIONS, formatDay, packProgress, suggestPacking, tripEnd } from '../../lib/packing';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
@@ -21,6 +22,7 @@ export default function TripScreen() {
       <SetupForm
         onCreate={(draft) => {
           const created = saveTrip({ ...draft, itemIds: [], packed: [], extras: [] });
+          track('trip_created', { nights: draft.nights });
           router.replace(`/trip/${created.id}`);
         }}
       />

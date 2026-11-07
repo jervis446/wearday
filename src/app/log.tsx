@@ -4,6 +4,7 @@ import { FlatList, Image, Pressable, ScrollView, Text, TextInput, View } from 'r
 
 import { OutfitCanvas } from '../components/OutfitCanvas';
 import { Button, ChipRow, confirm, ItemThumb } from '../components/ui';
+import { track } from '../lib/analytics';
 import { chooseImage } from '../lib/images';
 import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
@@ -34,6 +35,7 @@ export default function LogOutfit() {
 
   const save = () => {
     saveLog({ id: existing?.id, date, outfitId, itemIds, selfieUri, note: note.trim() || undefined });
+    if (!existing) track('outfit_logged', { items: itemIds.length, outfit: !!outfitId, selfie: !!selfieUri });
     router.back();
   };
 

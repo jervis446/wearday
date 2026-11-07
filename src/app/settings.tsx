@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Button, ChipRow, Section } from '../components/ui';
+import { analyticsConfigured, track } from '../lib/analytics';
 import { exportBackup, pickBackup, restorePhotos } from '../lib/backup';
 import { canRemoveBackground } from '../lib/cutout';
 import { CURRENCIES } from '../lib/moneyFormat';
@@ -62,6 +63,7 @@ export default function SettingsScreen() {
         settings,
       );
       update({ lastBackupAt: new Date().toISOString() });
+      track('backup_exported', { photos });
       setStatus({
         text: `Backup created with ${photos} photo${photos === 1 ? '' : 's'}.` + (missing ? ` ${missing} photo(s) couldn’t be read and were skipped.` : ''),
       });
@@ -88,6 +90,7 @@ export default function SettingsScreen() {
       if (!ok) return;
       const restored = await restorePhotos(backup);
       store.replaceAll(restored);
+      track('backup_restored', { items: db.items.length });
       replace({ ...backup.data.settings, lastBackupAt: settings.lastBackupAt });
       setStatus({ text: `Restored ${db.items.length} items, ${db.outfits.length} outfits and ${db.logs.length} calendar entries.` });
     } catch (e) {
@@ -173,6 +176,25 @@ export default function SettingsScreen() {
           </Text>
         ) : null}
       </Section>
+
+      {analyticsConfigured ? (
+        <Section title="Privacy">
+          <View style={[ui.row, { justifyContent: 'space-between', gap: 12 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={ui.body}>Share anonymous usage data</Text>
+              <Text style={ui.muted}>
+                Which features get used, so we can improve Wearday. Never your photos, item names or email.
+              </Text>
+            </View>
+            <Switch
+              value={settings.analytics}
+              onValueChange={(v) => update({ analytics: v })}
+              trackColor={{ true: colors.accent }}
+              thumbColor={colors.card}
+            />
+          </View>
+        </Section>
+      ) : null}
 
       <Section title="Backup">
         <Text style={ui.muted}>

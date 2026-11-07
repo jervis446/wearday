@@ -9,6 +9,8 @@ export type Settings = {
   reminder: { enabled: boolean; hour: number; minute: number };
   /** Remove photo backgrounds automatically when adding items (where supported). */
   autoRemoveBackground: boolean;
+  /** Share anonymous usage data (only if analytics is configured in this build). */
+  analytics: boolean;
   /** ISO date of the last successful export. */
   lastBackupAt?: string;
 };
@@ -18,6 +20,7 @@ export const DEFAULT_SETTINGS: Settings = {
   currency: 'auto',
   reminder: { enabled: false, hour: 8, minute: 30 },
   autoRemoveBackground: true,
+  analytics: true,
 };
 
 /** Fills in defaults for anything missing (older saves, backups from older versions). */

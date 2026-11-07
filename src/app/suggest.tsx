@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, Switch, Text, useWindowDimensions, View 
 
 import { OutfitCanvas } from '../components/OutfitCanvas';
 import { Button, ChipRow } from '../components/ui';
+import { track } from '../lib/analytics';
 import { autoLayout } from '../lib/outfitLayout';
 import { useStore, useWearCounts } from '../lib/store';
 import { aiConfigured, Suggestion, suggestOutfit } from '../lib/suggest';
@@ -47,8 +48,10 @@ export default function Suggest() {
       const coords = await getCoords();
       const s = await suggestOutfit({ items, logs, itemsOfLog, wears, occasion, coords, avoidItemIds: result?.itemIds });
       setResult(s);
+      track('suggestion_requested', { source: s.source, occasion, weather: !!s.weather, ok: true });
     } catch (e) {
       setError((e as Error).message);
+      track('suggestion_requested', { occasion, ok: false });
     } finally {
       setLoading(false);
     }
@@ -59,6 +62,7 @@ export default function Suggest() {
   const save = () => {
     if (!result) return;
     const outfit = saveOutfit({ name: result.name, pieces: autoLayout(chosen), tags: [occasion.toLowerCase()] });
+    track('outfit_saved', { pieces: chosen.length, source: 'suggestion' });
     router.replace(`/outfit/${outfit.id}`);
   };
 

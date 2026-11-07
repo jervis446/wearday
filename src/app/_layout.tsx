@@ -2,7 +2,9 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { AnalyticsSync } from '../components/AnalyticsSync';
 import { ReminderSync } from '../components/ReminderSync';
+import { analyticsConfigured } from '../lib/analytics';
 import { AuthProvider } from '../lib/auth';
 import { remindersSupported } from '../lib/reminders';
 import { SettingsProvider } from '../lib/settings';
@@ -32,6 +34,7 @@ function AppStack() {
     <>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       {remindersSupported ? <ReminderSync /> : null}
+      {analyticsConfigured ? <AnalyticsSync /> : null}
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.bg },
