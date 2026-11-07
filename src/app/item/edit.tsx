@@ -6,7 +6,8 @@ import { Button, ChipRow } from '../../components/ui';
 import { autoTag } from '../../lib/autotag';
 import { canRemoveBackground, removeBackground } from '../../lib/cutout';
 import { chooseImage } from '../../lib/images';
-import { useSettings } from '../../lib/settings';
+import { parsePrice } from '../../lib/moneyFormat';
+import { useMoney, useSettings } from '../../lib/settings';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { CATEGORIES, Category, Season, SEASONS } from '../../lib/types';
@@ -33,6 +34,7 @@ export default function EditItem() {
   const [tagging, setTagging] = useState(false);
   const [autoNote, setAutoNote] = useState('');
   const { settings } = useSettings();
+  const money = useMoney();
   const [canCutout, setCanCutout] = useState(false);
   const [cutting, setCutting] = useState(false);
   /** The photo before background removal, so the user can switch back. */
@@ -79,7 +81,6 @@ export default function EditItem() {
 
   const save = () => {
     if (!imageUri) return setError('Add a photo first.');
-    const parsedPrice = parseFloat(price.replace(',', '.'));
     saveItem({
       id: existing?.id,
       imageUri,
@@ -88,7 +89,7 @@ export default function EditItem() {
       brand: brand.trim() || undefined,
       color: color.trim() || undefined,
       size: size.trim() || undefined,
-      price: Number.isFinite(parsedPrice) ? parsedPrice : undefined,
+      price: parsePrice(price),
       seasons,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       notes: notes.trim() || undefined,
@@ -163,7 +164,7 @@ export default function EditItem() {
           <TextInput style={ui.input} value={size} onChangeText={setSize} placeholder="e.g. M" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={ui.label}>Price</Text>
+          <Text style={ui.label}>Price ({money.symbol})</Text>
           <TextInput style={ui.input} value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="0.00" />
         </View>
       </View>

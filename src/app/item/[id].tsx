@@ -2,6 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Image, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { Button, ChipRow, confirm, Empty } from '../../components/ui';
+import { useMoney } from '../../lib/settings';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { STATUS_LABEL, STATUSES } from '../../lib/types';
@@ -11,6 +12,7 @@ export default function ItemDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { items, outfits, logs, itemsOfLog, deleteItem, saveItem } = useStore();
   const wears = useWearCounts();
+  const money = useMoney();
   const item = items.find((i) => i.id === id);
   if (!item) return <Empty title="Item not found" />;
 
@@ -28,7 +30,7 @@ export default function ItemDetail() {
     ['Brand', item.brand],
     ['Color', item.color],
     ['Size', item.size],
-    ['Price', item.price != null ? item.price.toFixed(2) : undefined],
+    ['Price', item.price != null ? money.format(item.price) : undefined],
     ['Seasons', item.seasons.join(', ') || undefined],
     ['Tags', item.tags.join(', ') || undefined],
     ['Notes', item.notes],
@@ -43,7 +45,7 @@ export default function ItemDetail() {
 
       <View style={[ui.row, { gap: 10 }]}>
         <Stat label="Worn" value={`${count}×`} />
-        <Stat label="Cost / wear" value={cpw != null ? cpw.toFixed(2) : '—'} />
+        <Stat label="Cost / wear" value={cpw != null ? money.format(cpw, true) : '—'} />
         <Stat label="In outfits" value={String(inOutfits)} />
       </View>
       <Text style={ui.muted}>{lastWorn ? `Last worn ${lastWorn}` : 'Not worn yet'}</Text>

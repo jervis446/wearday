@@ -4,7 +4,8 @@ import { ActivityIndicator, Alert, Platform, ScrollView, Switch, Text, View } fr
 import { Button, ChipRow, Section } from '../components/ui';
 import { exportBackup, pickBackup, restorePhotos } from '../lib/backup';
 import { canRemoveBackground } from '../lib/cutout';
-import { ThemePref, useSettings } from '../lib/settings';
+import { CURRENCIES } from '../lib/moneyFormat';
+import { deviceCurrency, ThemePref, useSettings } from '../lib/settings';
 import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
 
@@ -77,6 +78,16 @@ export default function SettingsScreen() {
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 8, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
       <Section title="Appearance">
         <ChipRow options={Object.keys(THEMES)} selected={[themeLabel]} onToggle={(k) => update({ theme: THEMES[k] })} scroll={false} />
+      </Section>
+
+      <Section title="Currency">
+        <ChipRow
+          options={[`Auto (${deviceCurrency()})`, ...CURRENCIES]}
+          selected={[settings.currency === 'auto' ? `Auto (${deviceCurrency()})` : settings.currency]}
+          onToggle={(c) => update({ currency: c.startsWith('Auto') ? 'auto' : c })}
+          scroll={false}
+        />
+        <Text style={ui.muted}>Only changes how prices are shown; amounts aren’t converted.</Text>
       </Section>
 
       <Section title="Photos">

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ItemThumb } from '../../components/ui';
+import { useMoney } from '../../lib/settings';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { CATEGORIES, inCloset, Item, todayKey } from '../../lib/types';
@@ -11,6 +12,7 @@ export default function Stats() {
   const { colors, ui } = useTheme();
   const { items, outfits, logs } = useStore();
   const wears = useWearCounts();
+  const money = useMoney();
 
   const s = useMemo(() => {
     const owned = items.filter(inCloset);
@@ -41,7 +43,7 @@ export default function Stats() {
       <View style={[ui.row, { gap: 10 }]}>
         <Tile label="Items" value={String(s.owned.length)} />
         <Tile label="Outfits" value={String(outfits.length)} />
-        <Tile label="Closet value" value={s.value.toFixed(0)} />
+        <Tile label="Closet value" value={money.format(s.value, true)} />
       </View>
       <View style={[ui.row, { gap: 10 }]}>
         <Tile label="Items worn" value={`${s.utilisation}%`} />
@@ -63,7 +65,7 @@ export default function Stats() {
       </Section>
 
       <Strip title="Most worn" items={s.mostWorn} label={(i) => `${wears[i.id]}×`} />
-      <Strip title="Best cost per wear" items={s.bestValue} label={(i) => s.cpw(i).toFixed(2)} />
+      <Strip title="Best cost per wear" items={s.bestValue} label={(i) => money.format(s.cpw(i), true)} />
       <Strip title="Never worn — wear or donate?" items={s.neverWorn.slice(0, 12)} />
     </ScrollView>
   );

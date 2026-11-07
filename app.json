@@ -38,7 +38,8 @@
         {
           "locationWhenInUsePermission": "Wearday uses your approximate location to check today’s weather for outfit suggestions."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "scheme": "wearday",
     "splash": {

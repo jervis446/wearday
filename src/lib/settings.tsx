@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getLocales } from 'expo-localization';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { currencySymbol, formatMoney } from './moneyFormat';
 import { DEFAULT_SETTINGS, mergeSettings, Settings } from './settingsModel';
 
 export { DEFAULT_SETTINGS, mergeSettings } from './settingsModel';
@@ -36,4 +38,27 @@ export function useSettings() {
   const ctx = useContext(SettingsCtx);
   if (!ctx) throw new Error('useSettings must be used inside SettingsProvider');
   return ctx;
+}
+
+/** The phone region's currency, used when the setting is 'auto'. */
+export function deviceCurrency(): string {
+  try {
+    return getLocales()[0]?.currencyCode || 'USD';
+  } catch {
+    return 'USD';
+  }
+}
+
+/** Formats prices in the user's chosen currency. */
+export function useMoney() {
+  const { settings } = useSettings();
+  const currency = settings.currency === 'auto' ? deviceCurrency() : settings.currency;
+  return useMemo(
+    () => ({
+      currency,
+      symbol: currencySymbol(currency),
+      format: (amount: number, compact = false) => formatMoney(amount, currency, { compact }),
+    }),
+    [currency],
+  );
 }

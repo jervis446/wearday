@@ -4,7 +4,7 @@ export type ThemePref = 'system' | 'light' | 'dark';
 
 export type Settings = {
   theme: ThemePref;
-  /** ISO 4217 code, e.g. INR, USD, EUR. */
+  /** ISO 4217 code, e.g. INR, USD, EUR, or 'auto' to follow the phone's region. */
   currency: string;
   reminder: { enabled: boolean; hour: number; minute: number };
   /** Remove photo backgrounds automatically when adding items (where supported). */
@@ -15,7 +15,7 @@ export type Settings = {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
-  currency: 'INR',
+  currency: 'auto',
   reminder: { enabled: false, hour: 8, minute: 30 },
   autoRemoveBackground: true,
 };
