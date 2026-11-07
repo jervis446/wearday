@@ -12,9 +12,11 @@ Built from scratch: no code or assets were taken from the original app.
 - **Stats**: item count, closet value, share of items worn, days logged, a breakdown by category, most worn items, best cost per wear, and never-worn items.
 - **Auto-tagging**: after you take a photo, the app fills in the colour, and in a real build the category too (Google ML Kit, on the phone). Nothing is uploaded.
 - **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
+- **Backup and restore**: Settings → Export backup saves everything (data, settings and photos) to one `.zip` file you can keep in Google Drive or iCloud. Restore brings it all back, for example on a new phone.
+- **Dark mode**: follows the phone, or set Light or Dark in Settings.
 - **Item detail**: times worn, cost per wear, last worn date, and how many outfits use the item.
 
-All data is stored on the device (AsyncStorage). Photos are copied into the app's document directory.
+All data is stored on the device (AsyncStorage). Photos are resized to at most 1200 px and kept in the app's documents folder; unused photos are cleaned up automatically. In the browser version, photos are stored as embedded data.
 
 ## Run
 

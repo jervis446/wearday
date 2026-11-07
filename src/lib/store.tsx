@@ -17,6 +17,8 @@ type Store = Db & {
   deleteLog: (id: string) => void;
   /** Item ids worn on a log, including the pieces of its outfit. */
   itemsOfLog: (log: WearLog) => string[];
+  /** Replaces all data (used by restore), then deletes photos the old data used. */
+  replaceAll: (db: Db) => void;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -101,6 +103,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setDb((d) => ({ ...d, logs: d.logs.filter((l) => l.id !== id) }));
   }, []);
 
+  const replaceAll = useCallback((next: Db) => {
+    const merged: Db = { ...empty, ...next };
+    setDb(merged);
+    cleanupImages([...merged.items.map((i) => i.imageUri), ...merged.logs.map((l) => l.selfieUri)]);
+  }, []);
+
   const itemsOfLog = useCallback(
     (log: WearLog) => {
       const outfit = log.outfitId ? db.outfits.find((o) => o.id === log.outfitId) : undefined;
@@ -110,8 +118,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ ...db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog }),
-    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog],
+    () => ({ ...db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, replaceAll }),
+    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, replaceAll],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

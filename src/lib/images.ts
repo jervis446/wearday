@@ -1,4 +1,5 @@
 import { Directory, File, Paths } from 'expo-file-system';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Platform } from 'react-native';
 
@@ -29,22 +30,47 @@ export async function pickImage(source: 'camera' | 'library', square = true): Pr
       ? await ImagePicker.launchCameraAsync(options)
       : await ImagePicker.launchImageLibraryAsync(options);
   if (result.canceled || !result.assets?.[0]) return null;
-  return persist(result.assets[0].uri);
+  const asset = result.assets[0];
+  return persist(asset.uri, asset.width);
 }
 
 const imagesDir = () => new Directory(Paths.document, 'images');
 
-function persist(uri: string): string {
-  if (Platform.OS === 'web') return uri;
+/** Photos are never shown bigger than this, so larger ones only waste space and slow backups. */
+const MAX_WIDTH = Platform.OS === 'web' ? 800 : 1200;
+
+/**
+ * Shrinks the photo if needed and stores it where it will last:
+ * - phone: a JPEG in the app's documents folder (survives cache clears)
+ * - web: an embedded data URI (blob URLs stop working after a reload)
+ */
+async function persist(uri: string, width?: number): Promise<string> {
+  let src = uri;
+  let base64: string | undefined;
+  try {
+    const ctx = ImageManipulator.manipulate(uri);
+    if (!width || width > MAX_WIDTH) ctx.resize({ width: MAX_WIDTH });
+    const out = await (await ctx.renderAsync()).saveAsync({
+      format: SaveFormat.JPEG,
+      compress: 0.8,
+      base64: Platform.OS === 'web',
+    });
+    src = out.uri;
+    base64 = out.base64;
+  } catch {
+    // Keep the original if resizing fails.
+  }
+
+  if (Platform.OS === 'web') return base64 ? `data:image/jpeg;base64,${base64}` : src;
   try {
     const dir = imagesDir();
     dir.create({ intermediates: true, idempotent: true });
-    const ext = uri.split('.').pop()?.split('?')[0] || 'jpg';
+    const ext = src.split('.').pop()?.split('?')[0] || 'jpg';
     const dest = new File(dir, `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`);
-    new File(uri).copy(dest);
+    new File(src).copy(dest);
     return dest.uri;
   } catch {
-    return uri;
+    return src;
   }
 }
 

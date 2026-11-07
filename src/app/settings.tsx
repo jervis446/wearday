@@ -1,20 +1,91 @@
-import { ScrollView } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, Text } from 'react-native';
 
-import { ChipRow, Section } from '../components/ui';
+import { Button, ChipRow, Section } from '../components/ui';
+import { exportBackup, pickBackup, restorePhotos } from '../lib/backup';
 import { ThemePref, useSettings } from '../lib/settings';
+import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
 
 const THEMES: Record<string, ThemePref> = { 'Match phone': 'system', Light: 'light', Dark: 'dark' };
 
+function ask(title: string, message: string, ok: string): Promise<boolean> {
+  if (Platform.OS === 'web') return Promise.resolve(!!globalThis.confirm?.(`${title}\n\n${message}`));
+  return new Promise((resolve) =>
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+      { text: ok, style: 'destructive', onPress: () => resolve(true) },
+    ]),
+  );
+}
+
 export default function SettingsScreen() {
-  const { ui } = useTheme();
-  const { settings, update } = useSettings();
+  const { colors, ui } = useTheme();
+  const { settings, update, replace } = useSettings();
+  const store = useStore();
+  const [busy, setBusy] = useState<'' | 'export' | 'import'>('');
+  const [status, setStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const themeLabel = Object.keys(THEMES).find((k) => THEMES[k] === settings.theme)!;
+
+  const doExport = async () => {
+    setBusy('export');
+    setStatus(null);
+    try {
+      const { photos, missing } = await exportBackup({ items: store.items, outfits: store.outfits, logs: store.logs }, settings);
+      update({ lastBackupAt: new Date().toISOString() });
+      setStatus({
+        text: `Backup created with ${photos} photo${photos === 1 ? '' : 's'}.` + (missing ? ` ${missing} photo(s) couldn’t be read and were skipped.` : ''),
+      });
+    } catch (e) {
+      setStatus({ text: (e as Error).message, error: true });
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const doImport = async () => {
+    setStatus(null);
+    try {
+      setBusy('import');
+      const backup = await pickBackup();
+      if (!backup) return;
+      const { db, exportedAt } = { db: backup.data.db, exportedAt: backup.data.exportedAt };
+      const ok = await ask(
+        'Restore this backup?',
+        `It has ${db.items.length} items, ${db.outfits.length} outfits and ${db.logs.length} calendar entries from ${exportedAt.slice(0, 10)}. ` +
+          'Everything currently in the app will be replaced.',
+        'Restore',
+      );
+      if (!ok) return;
+      const restored = await restorePhotos(backup);
+      store.replaceAll(restored);
+      replace({ ...backup.data.settings, lastBackupAt: settings.lastBackupAt });
+      setStatus({ text: `Restored ${db.items.length} items, ${db.outfits.length} outfits and ${db.logs.length} calendar entries.` });
+    } catch (e) {
+      setStatus({ text: (e as Error).message, error: true });
+    } finally {
+      setBusy('');
+    }
+  };
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 8, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
       <Section title="Appearance">
         <ChipRow options={Object.keys(THEMES)} selected={[themeLabel]} onToggle={(k) => update({ theme: THEMES[k] })} scroll={false} />
+      </Section>
+
+      <Section title="Backup">
+        <Text style={ui.muted}>
+          Your wardrobe is stored only on this phone. Export a backup now and then and save it to Google Drive, iCloud or
+          your computer, so you can restore it on a new phone.
+        </Text>
+        <Text style={ui.muted}>
+          {settings.lastBackupAt ? `Last backup: ${new Date(settings.lastBackupAt).toLocaleDateString()}` : 'No backup yet.'}
+        </Text>
+        <Button title={busy === 'export' ? 'Creating backup…' : 'Export backup'} onPress={busy ? () => {} : doExport} />
+        <Button title={busy === 'import' ? 'Restoring…' : 'Restore from backup'} variant="secondary" onPress={busy ? () => {} : doImport} />
+        {busy ? <ActivityIndicator color={colors.accent} /> : null}
+        {status ? <Text style={[ui.body, { color: status.error ? colors.danger : colors.text }]}>{status.text}</Text> : null}
       </Section>
     </ScrollView>
   );
