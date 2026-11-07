@@ -45,3 +45,7 @@ yarn-error.*
 .dev.vars
 worker/.wrangler/
 worker/node_modules/
+
+# Supabase local dev
+supabase/.branches
+supabase/.temp
