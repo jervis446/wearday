@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
 import { Button, ChipRow } from '../../components/ui';
 import { autoTag } from '../../lib/autotag';
+import { canRemoveBackground, removeBackground } from '../../lib/cutout';
 import { chooseImage } from '../../lib/images';
+import { useSettings } from '../../lib/settings';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { CATEGORIES, Category, Season, SEASONS } from '../../lib/types';
@@ -30,13 +32,38 @@ export default function EditItem() {
   const [categoryTouched, setCategoryTouched] = useState(!!existing);
   const [tagging, setTagging] = useState(false);
   const [autoNote, setAutoNote] = useState('');
+  const { settings } = useSettings();
+  const [canCutout, setCanCutout] = useState(false);
+  const [cutting, setCutting] = useState(false);
+  /** The photo before background removal, so the user can switch back. */
+  const [originalUri, setOriginalUri] = useState<string>();
+
+  useEffect(() => {
+    canRemoveBackground().then(setCanCutout);
+  }, []);
+
+  const cutout = async (uri: string) => {
+    setCutting(true);
+    const out = await removeBackground(uri);
+    setCutting(false);
+    if (out) {
+      setOriginalUri(uri);
+      setImageUri(out);
+    } else {
+      setError('Couldn’t find the item in this photo. Try a plainer background, or keep the original.');
+    }
+  };
 
   const onPhoto = async (uri: string) => {
     setImageUri(uri);
+    setOriginalUri(undefined);
     setError('');
     setTagging(true);
     setAutoNote('');
-    const tags = await autoTag(uri);
+    // Tag the original: a transparent cut-out would confuse colour detection.
+    const tagged = autoTag(uri);
+    if (canCutout && settings.autoRemoveBackground) cutout(uri);
+    const tags = await tagged;
     setTagging(false);
     const filled: string[] = [];
     if (tags.category && !categoryTouched) {
@@ -85,6 +112,28 @@ export default function EditItem() {
           <Text style={ui.muted}>Tap to take or choose a photo</Text>
         )}
       </Pressable>
+      {cutting ? (
+        <View style={[ui.row, { gap: 8, marginTop: 8 }]}>
+          <ActivityIndicator color={colors.accent} />
+          <Text style={ui.muted}>Removing background…</Text>
+        </View>
+      ) : canCutout && imageUri ? (
+        <View style={[ui.row, { gap: 10, marginTop: 10 }]}>
+          {originalUri ? (
+            <Button
+              title="Use original photo"
+              variant="secondary"
+              style={{ flex: 1 }}
+              onPress={() => {
+                setImageUri(originalUri);
+                setOriginalUri(undefined);
+              }}
+            />
+          ) : (
+            <Button title="✂️ Remove background" variant="secondary" style={{ flex: 1 }} onPress={() => cutout(imageUri)} />
+          )}
+        </View>
+      ) : null}
       {error ? <Text style={{ color: colors.danger, marginTop: 8 }}>{error}</Text> : null}
       {tagging ? <Text style={[ui.muted, { marginTop: 8 }]}>Detecting colour and type…</Text> : null}
       {autoNote ? <Text style={[ui.muted, { marginTop: 8, color: colors.accent }]}>{autoNote}</Text> : null}

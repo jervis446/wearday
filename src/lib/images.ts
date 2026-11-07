@@ -62,15 +62,31 @@ async function persist(uri: string, width?: number): Promise<string> {
   }
 
   if (Platform.OS === 'web') return base64 ? `data:image/jpeg;base64,${base64}` : src;
+  return copyIntoImages(src) ?? src;
+}
+
+/**
+ * Copies (or moves) a file into the app's images folder and returns its new URI,
+ * or undefined if that fails.
+ */
+export function copyIntoImages(src: string, move = false): string | undefined {
   try {
     const dir = imagesDir();
     dir.create({ intermediates: true, idempotent: true });
-    const ext = src.split('.').pop()?.split('?')[0] || 'jpg';
+    const ext = src.split('?')[0].split('.').pop()?.toLowerCase() || 'jpg';
     const dest = new File(dir, `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`);
-    new File(src).copy(dest);
+    const from = new File(src);
+    from.copy(dest);
+    if (move) {
+      try {
+        from.delete();
+      } catch {
+        // Leaving a temp file behind is harmless.
+      }
+    }
     return dest.uri;
   } catch {
-    return src;
+    return undefined;
   }
 }
 

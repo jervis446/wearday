@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { ActivityIndicator, Alert, Platform, ScrollView, Text } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Button, ChipRow, Section } from '../components/ui';
 import { exportBackup, pickBackup, restorePhotos } from '../lib/backup';
+import { canRemoveBackground } from '../lib/cutout';
 import { ThemePref, useSettings } from '../lib/settings';
 import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
@@ -25,6 +26,10 @@ export default function SettingsScreen() {
   const store = useStore();
   const [busy, setBusy] = useState<'' | 'export' | 'import'>('');
   const [status, setStatus] = useState<{ text: string; error?: boolean } | null>(null);
+  const [canCutout, setCanCutout] = useState<boolean | null>(null);
+  useEffect(() => {
+    canRemoveBackground().then(setCanCutout);
+  }, []);
   const themeLabel = Object.keys(THEMES).find((k) => THEMES[k] === settings.theme)!;
 
   const doExport = async () => {
@@ -72,6 +77,28 @@ export default function SettingsScreen() {
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 8, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
       <Section title="Appearance">
         <ChipRow options={Object.keys(THEMES)} selected={[themeLabel]} onToggle={(k) => update({ theme: THEMES[k] })} scroll={false} />
+      </Section>
+
+      <Section title="Photos">
+        {canCutout ? (
+          <View style={[ui.row, { justifyContent: 'space-between', gap: 12 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={ui.body}>Remove backgrounds automatically</Text>
+              <Text style={ui.muted}>Cuts clothes out of new photos, on your phone. You can switch back to the original.</Text>
+            </View>
+            <Switch
+              value={settings.autoRemoveBackground}
+              onValueChange={(v) => update({ autoRemoveBackground: v })}
+              trackColor={{ true: colors.accent }}
+              thumbColor={colors.card}
+            />
+          </View>
+        ) : canCutout === false ? (
+          <Text style={ui.muted}>
+            Background removal works in the installed app on Android, and on iPhones with iOS 17 or later. It isn’t available
+            in Expo Go or the browser.
+          </Text>
+        ) : null}
       </Section>
 
       <Section title="Backup">

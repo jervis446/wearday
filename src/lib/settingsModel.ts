@@ -7,6 +7,8 @@ export type Settings = {
   /** ISO 4217 code, e.g. INR, USD, EUR. */
   currency: string;
   reminder: { enabled: boolean; hour: number; minute: number };
+  /** Remove photo backgrounds automatically when adding items (where supported). */
+  autoRemoveBackground: boolean;
   /** ISO date of the last successful export. */
   lastBackupAt?: string;
 };
@@ -15,6 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   currency: 'INR',
   reminder: { enabled: false, hour: 8, minute: 30 },
+  autoRemoveBackground: true,
 };
 
 /** Fills in defaults for anything missing (older saves, backups from older versions). */
