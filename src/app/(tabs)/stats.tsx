@@ -5,7 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { ItemThumb } from '../../components/ui';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
-import { CATEGORIES, Item, todayKey } from '../../lib/types';
+import { CATEGORIES, inCloset, Item, todayKey } from '../../lib/types';
 
 export default function Stats() {
   const { colors, ui } = useTheme();
@@ -13,7 +13,7 @@ export default function Stats() {
   const wears = useWearCounts();
 
   const s = useMemo(() => {
-    const owned = items.filter((i) => !i.wishlist);
+    const owned = items.filter(inCloset);
     const value = owned.reduce((sum, i) => sum + (i.price ?? 0), 0);
     const worn = owned.filter((i) => wears[i.id]);
     const byWear = [...owned].sort((a, b) => (wears[b.id] ?? 0) - (wears[a.id] ?? 0));

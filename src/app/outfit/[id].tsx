@@ -7,7 +7,7 @@ import { Button, ChipRow, confirm, ItemThumb } from '../../components/ui';
 import { SLOT } from '../../lib/outfitLayout';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
-import { CATEGORIES, OutfitPiece } from '../../lib/types';
+import { CATEGORIES, OutfitPiece, inCloset } from '../../lib/types';
 
 export default function OutfitBuilder() {
   const { colors, ui } = useTheme();
@@ -23,7 +23,7 @@ export default function OutfitBuilder() {
   const [selected, setSelected] = useState<number | null>(null);
   const [cat, setCat] = useState<string>('Tops');
 
-  const owned = items.filter((i) => !i.wishlist && i.category === cat);
+  const owned = items.filter((i) => inCloset(i) && i.category === cat);
 
   const add = (itemId: string) => {
     const item = items.find((i) => i.id === itemId)!;

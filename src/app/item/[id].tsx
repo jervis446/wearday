@@ -1,9 +1,10 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { Button, confirm, Empty } from '../../components/ui';
+import { Button, ChipRow, confirm, Empty } from '../../components/ui';
 import { useStore, useWearCounts } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
+import { STATUS_LABEL, STATUSES } from '../../lib/types';
 
 export default function ItemDetail() {
   const { colors, ui } = useTheme();
@@ -58,11 +59,44 @@ export default function ItemDetail() {
           ))}
       </View>
 
+      {!item.wishlist ? (
+        <View style={[ui.card, { padding: 14, gap: 10 }]}>
+          <Text style={ui.h2}>Status</Text>
+          <ChipRow
+            options={STATUSES.map((s) => STATUS_LABEL[s])}
+            selected={[STATUS_LABEL[item.status ?? 'available']]}
+            onToggle={(label) => {
+              const status = STATUSES.find((s) => STATUS_LABEL[s] === label)!;
+              saveItem({
+                ...item,
+                status: status === 'available' ? undefined : status,
+                lentTo: status === 'lent' ? item.lentTo : undefined,
+              });
+            }}
+            scroll={false}
+          />
+          {item.status === 'lent' ? (
+            <TextInput
+              style={ui.input}
+              placeholder="Lent to (name)"
+              placeholderTextColor={colors.muted}
+              value={item.lentTo ?? ''}
+              onChangeText={(lentTo) => saveItem({ ...item, lentTo })}
+            />
+          ) : null}
+          {item.status === 'sold' || item.status === 'donated' ? (
+            <Text style={ui.muted}>Archived: hidden from your closet, stats and suggestions. Wear history is kept.</Text>
+          ) : item.status === 'laundry' || item.status === 'lent' ? (
+            <Text style={ui.muted}>Skipped by outfit suggestions until it’s available again.</Text>
+          ) : null}
+        </View>
+      ) : null}
+
       {item.wishlist ? (
         <Button title="I bought it — move to closet" onPress={() => saveItem({ ...item, wishlist: false })} />
-      ) : (
+      ) : !item.status || item.status === 'available' ? (
         <Button title="Wear today" onPress={() => router.push({ pathname: '/log', params: { itemId: item.id } })} />
-      )}
+      ) : null}
       <Button title="Edit" variant="secondary" onPress={() => router.push({ pathname: '/item/edit', params: { id: item.id } })} />
       <Button
         title="Delete"

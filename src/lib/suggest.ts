@@ -1,4 +1,4 @@
-import { Item, todayKey, WearLog } from './types';
+import { Item, todayKey, WearLog, wearable } from './types';
 
 /** Set in a .env file (see .env.example). Without it, the app uses the offline rule-based picker. */
 const URL_ = process.env.EXPO_PUBLIC_SUGGEST_URL?.replace(/\/+$/, '');
@@ -26,8 +26,8 @@ function lastWornMap(logs: WearLog[], itemsOfLog: Ctx['itemsOfLog']) {
 }
 
 export async function suggestOutfit(ctx: Ctx): Promise<Suggestion> {
-  const owned = ctx.items.filter((i) => !i.wishlist);
-  if (owned.length < 2) throw new Error('Add at least two clothes to your closet first.');
+  const owned = ctx.items.filter(wearable);
+  if (owned.length < 2) throw new Error('Add at least two clothes to your closet first (items in the laundry or lent out are skipped).');
   if (!URL_) return basicSuggestion(ctx, owned);
 
   const last = lastWornMap(ctx.logs, ctx.itemsOfLog);

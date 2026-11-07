@@ -7,7 +7,7 @@ import { Button, ChipRow, confirm, ItemThumb } from '../components/ui';
 import { chooseImage } from '../lib/images';
 import { useStore } from '../lib/store';
 import { useTheme } from '../lib/theme';
-import { CATEGORIES, todayKey } from '../lib/types';
+import { CATEGORIES, inCloset, todayKey } from '../lib/types';
 
 /** Log what was worn on a day: a saved outfit and/or individual items, plus an outfit selfie. */
 export default function LogOutfit() {
@@ -37,7 +37,7 @@ export default function LogOutfit() {
     router.back();
   };
 
-  const owned = items.filter((i) => !i.wishlist && i.category === cat);
+  const owned = items.filter((i) => inCloset(i) && i.category === cat);
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { paddingBottom: 60, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>

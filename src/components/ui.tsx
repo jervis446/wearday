@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { Palette, themed, useTheme } from '../lib/theme';
-import { Item } from '../lib/types';
+import { Item, STATUS_LABEL } from '../lib/types';
 
 /** Destructive confirm dialog that also works on web. */
 export function confirm(title: string, onYes: () => void) {
@@ -90,6 +90,11 @@ export function ItemThumb({ item, size, badge }: { item?: Item; size: number; ba
           <Text style={s.badgeText}>{badge}</Text>
         </View>
       ) : null}
+      {item?.status && item.status !== 'available' && size >= 70 ? (
+        <View style={s.status}>
+          <Text style={s.statusText}>{item.status === 'laundry' ? '🧺 Laundry' : STATUS_LABEL[item.status]}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -141,5 +146,16 @@ const makeStyles = themed((colors: Palette) =>
     paddingVertical: 1,
   },
   badgeText: { color: colors.accentText, fontSize: 11, fontWeight: '600' },
+  status: {
+    position: 'absolute',
+    left: 6,
+    bottom: 6,
+    backgroundColor: colors.text,
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    opacity: 0.85,
+  },
+  statusText: { color: colors.bg, fontSize: 10, fontWeight: '600' },
   }),
 );

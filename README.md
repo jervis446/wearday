@@ -6,6 +6,7 @@ Built from scratch: no code or assets were taken from the original app.
 ## Features
 
 - **Wardrobe**: add clothes from the camera or photo library, with category, brand, color, size, price, seasons, tags and notes. Search, filter by category, and sort by newest, most worn or least worn.
+- **Item status**: Available, In laundry, Lent out (to whom), Sold or Donated. Laundry and lent items are skipped by suggestions; sold and donated items move to Archived with their history kept.
 - **Wishlist**: items you want but don't own yet. "I bought it" moves them into the closet.
 - **Outfit builder**: drag pieces around a canvas, resize them, and bring them to the front. Outfits can be named and tagged.
 - **Calendar**: log what you wore each day (a saved outfit and/or individual items), with an optional outfit selfie and a note. The month grid shows the selfie or a piece of clothing for each logged day.
