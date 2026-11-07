@@ -35,6 +35,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: 'Wardrobe', headerTitle: 'Wearday', tabBarIcon: icon('shirt-outline', 'shirt') }} />
       <Tabs.Screen name="outfits" options={{ title: 'Outfits', tabBarIcon: icon('layers-outline', 'layers') }} />
       <Tabs.Screen name="calendar" options={{ title: 'Calendar', tabBarIcon: icon('calendar-outline', 'calendar') }} />
+      <Tabs.Screen name="trips" options={{ title: 'Trips', tabBarIcon: icon('airplane-outline', 'airplane') }} />
       <Tabs.Screen name="stats" options={{ title: 'Stats', tabBarIcon: icon('stats-chart-outline', 'stats-chart') }} />
     </Tabs>
   );

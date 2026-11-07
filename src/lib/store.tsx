@@ -2,10 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cleanupImages, deleteImage } from './images';
-import { Db, Item, Outfit, WearLog, uid } from './types';
+import { Collection, Db, Item, Outfit, Trip, WearLog, uid } from './types';
 
 const KEY = 'fits-clone/db/v1';
-const empty: Db = { items: [], outfits: [], logs: [] };
+const empty: Db = { items: [], outfits: [], logs: [], trips: [], collections: [] };
 
 type Store = Db & {
   ready: boolean;
@@ -17,6 +17,10 @@ type Store = Db & {
   deleteLog: (id: string) => void;
   /** Item ids worn on a log, including the pieces of its outfit. */
   itemsOfLog: (log: WearLog) => string[];
+  saveTrip: (trip: Omit<Trip, 'id' | 'createdAt'> & { id?: string }) => Trip;
+  deleteTrip: (id: string) => void;
+  saveCollection: (c: Omit<Collection, 'id' | 'createdAt'> & { id?: string }) => Collection;
+  deleteCollection: (id: string) => void;
   /** Replaces all data (used by restore), then deletes photos the old data used. */
   replaceAll: (db: Db) => void;
 };
@@ -70,6 +74,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       items: d.items.filter((i) => i.id !== id),
       outfits: d.outfits.map((o) => ({ ...o, pieces: o.pieces.filter((p) => p.itemId !== id) })),
       logs: d.logs.map((l) => ({ ...l, itemIds: l.itemIds.filter((x) => x !== id) })),
+      trips: d.trips.map((t) => ({ ...t, itemIds: t.itemIds.filter((x) => x !== id), packed: t.packed.filter((x) => x !== id) })),
     }));
   }, []);
 
@@ -87,6 +92,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...d,
       outfits: d.outfits.filter((o) => o.id !== id),
       logs: d.logs.map((l) => (l.outfitId === id ? { ...l, outfitId: undefined } : l)),
+      collections: d.collections.map((c) => ({ ...c, outfitIds: c.outfitIds.filter((x) => x !== id) })),
     }));
   }, []);
 
@@ -101,6 +107,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const deleteLog = useCallback((id: string) => {
     deleteImage(dbRef.current.logs.find((l) => l.id === id)?.selfieUri);
     setDb((d) => ({ ...d, logs: d.logs.filter((l) => l.id !== id) }));
+  }, []);
+
+  const saveTrip: Store['saveTrip'] = useCallback((input) => {
+    const saved: Trip = { ...input, id: input.id ?? uid(), createdAt: Date.now() };
+    setDb((d) => {
+      const prev = d.trips.find((t) => t.id === saved.id);
+      return { ...d, trips: upsert(d.trips, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
+    });
+    return saved;
+  }, []);
+
+  const deleteTrip = useCallback((id: string) => {
+    setDb((d) => ({ ...d, trips: d.trips.filter((t) => t.id !== id) }));
+  }, []);
+
+  const saveCollection: Store['saveCollection'] = useCallback((input) => {
+    const saved: Collection = { ...input, id: input.id ?? uid(), createdAt: Date.now() };
+    setDb((d) => {
+      const prev = d.collections.find((c) => c.id === saved.id);
+      return { ...d, collections: upsert(d.collections, { ...saved, createdAt: prev?.createdAt ?? saved.createdAt }) };
+    });
+    return saved;
+  }, []);
+
+  const deleteCollection = useCallback((id: string) => {
+    setDb((d) => ({ ...d, collections: d.collections.filter((c) => c.id !== id) }));
   }, []);
 
   const replaceAll = useCallback((next: Db) => {
@@ -118,8 +150,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ ...db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, replaceAll }),
-    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, replaceAll],
+    () => ({
+      ...db,
+      ready,
+      saveItem,
+      deleteItem,
+      saveOutfit,
+      deleteOutfit,
+      saveLog,
+      deleteLog,
+      itemsOfLog,
+      saveTrip,
+      deleteTrip,
+      saveCollection,
+      deleteCollection,
+      replaceAll,
+    }),
+    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, saveTrip, deleteTrip, saveCollection, deleteCollection, replaceAll],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

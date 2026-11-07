@@ -110,6 +110,16 @@ export function Empty({ title, hint, action }: { title: string; hint?: string; a
   );
 }
 
+/** A text button for the navigation header (adds the right margin web needs; native adds its own). */
+export function HeaderButton({ title, onPress }: { title: string; onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable onPress={onPress} hitSlop={12} style={{ marginRight: Platform.OS === 'web' ? 16 : 0 }} accessibilityRole="button">
+      <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>{title}</Text>
+    </Pressable>
+  );
+}
+
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const { ui } = useTheme();
   return (

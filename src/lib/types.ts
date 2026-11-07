@@ -76,10 +76,36 @@ export type WearLog = {
   note?: string;
 };
 
+/** A non-clothing thing to pack, e.g. "Charger". */
+export type PackExtra = { id: string; text: string; packed: boolean };
+
+export type Trip = {
+  id: string;
+  name: string;
+  destination?: string;
+  start: string; // YYYY-MM-DD
+  nights: number;
+  itemIds: string[];
+  /** Item ids already in the suitcase. */
+  packed: string[];
+  extras: PackExtra[];
+  createdAt: number;
+};
+
+/** A named group of outfits, e.g. "Office" or "Goa trip". */
+export type Collection = {
+  id: string;
+  name: string;
+  outfitIds: string[];
+  createdAt: number;
+};
+
 export type Db = {
   items: Item[];
   outfits: Outfit[];
   logs: WearLog[];
+  trips: Trip[];
+  collections: Collection[];
 };
 
 export const uid = () =>

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
-import { Button, ChipRow, confirm, ItemThumb } from '../../components/ui';
+import { Button, ChipRow, HeaderButton, ItemThumb, confirm } from '../../components/ui';
 import { SLOT } from '../../lib/outfitLayout';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
@@ -51,11 +51,7 @@ export default function OutfitBuilder() {
         options={{
           title: existing ? 'Edit outfit' : 'New outfit',
           headerRight: existing
-            ? () => (
-                <Pressable onPress={() => router.push({ pathname: '/outfit/share', params: { id: existing.id } })} hitSlop={12}>
-                  <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Share</Text>
-                </Pressable>
-              )
+            ? () => <HeaderButton title="Share" onPress={() => router.push({ pathname: '/outfit/share', params: { id: existing.id } })} />
             : undefined,
         }}
       />

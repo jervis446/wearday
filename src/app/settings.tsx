@@ -51,7 +51,10 @@ export default function SettingsScreen() {
     setBusy('export');
     setStatus(null);
     try {
-      const { photos, missing } = await exportBackup({ items: store.items, outfits: store.outfits, logs: store.logs }, settings);
+      const { photos, missing } = await exportBackup(
+        { items: store.items, outfits: store.outfits, logs: store.logs, trips: store.trips, collections: store.collections },
+        settings,
+      );
       update({ lastBackupAt: new Date().toISOString() });
       setStatus({
         text: `Backup created with ${photos} photo${photos === 1 ? '' : 's'}.` + (missing ? ` ${missing} photo(s) couldn’t be read and were skipped.` : ''),

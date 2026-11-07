@@ -11,6 +11,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Outfit builder**: drag pieces around a canvas, resize them, and bring them to the front. Outfits can be named and tagged.
 - **Share outfits**: turn any outfit into a branded image card and share it to Instagram, WhatsApp and other apps.
 - **Calendar**: log what you wore each day (a saved outfit and/or individual items), with an optional outfit selfie and a note. The month grid shows the selfie or a piece of clothing for each logged day.
+- **Trips and packing lists**: plan a trip (dates, nights, destination), let the app suggest clothes for its length and season, add outfits or single items, and tick things off, including extras like chargers and ID.
 - **Stats**: item count, closet value, share of items worn, days logged, a breakdown by category, most worn items, best cost per wear, and never-worn items.
 - **Auto-tagging**: after you take a photo, the app fills in the colour, and in a real build the category too (Google ML Kit, on the phone). Nothing is uploaded.
 - **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
@@ -67,4 +68,3 @@ cd worker && npm test  # suggestion Worker
 ## Not yet implemented
 
 - Cloud sync and accounts (for example Supabase or Firebase).
-- Packing lists.
