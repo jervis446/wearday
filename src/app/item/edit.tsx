@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Image, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
 import { Button, ChipRow } from '../../components/ui';
+import { autoTag } from '../../lib/autotag';
 import { chooseImage } from '../../lib/images';
 import { useStore } from '../../lib/store';
 import { colors, ui } from '../../lib/theme';
@@ -25,6 +26,28 @@ export default function EditItem() {
   const [notes, setNotes] = useState(existing?.notes ?? '');
   const [wishlist, setWishlist] = useState(existing?.wishlist ?? params.wishlist === '1');
   const [error, setError] = useState('');
+  const [categoryTouched, setCategoryTouched] = useState(!!existing);
+  const [tagging, setTagging] = useState(false);
+  const [autoNote, setAutoNote] = useState('');
+
+  const onPhoto = async (uri: string) => {
+    setImageUri(uri);
+    setError('');
+    setTagging(true);
+    setAutoNote('');
+    const tags = await autoTag(uri);
+    setTagging(false);
+    const filled: string[] = [];
+    if (tags.category && !categoryTouched) {
+      setCategory(tags.category);
+      filled.push(tags.category);
+    }
+    if (tags.color && !color.trim()) {
+      setColor(tags.color);
+      filled.push(tags.color);
+    }
+    if (filled.length) setAutoNote(`Auto-filled: ${filled.join(' · ')}. Change anything that’s wrong.`);
+  };
 
   const save = () => {
     if (!imageUri) return setError('Add a photo first.');
@@ -51,10 +74,7 @@ export default function EditItem() {
       <Pressable
         onPress={async () => {
           const uri = await chooseImage(true);
-          if (uri) {
-            setImageUri(uri);
-            setError('');
-          }
+          if (uri) await onPhoto(uri);
         }}
         style={[ui.card, { aspectRatio: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}
       >
@@ -65,12 +85,17 @@ export default function EditItem() {
         )}
       </Pressable>
       {error ? <Text style={{ color: colors.danger, marginTop: 8 }}>{error}</Text> : null}
+      {tagging ? <Text style={[ui.muted, { marginTop: 8 }]}>Detecting colour and type…</Text> : null}
+      {autoNote ? <Text style={[ui.muted, { marginTop: 8, color: colors.accent }]}>{autoNote}</Text> : null}
 
       <Text style={ui.label}>Name</Text>
       <TextInput style={ui.input} value={name} onChangeText={setName} placeholder="e.g. White linen shirt" />
 
       <Text style={ui.label}>Category</Text>
-      <ChipRow options={CATEGORIES} selected={[category]} onToggle={(c) => setCategory(c as Category)} scroll={false} />
+      <ChipRow options={CATEGORIES} selected={[category]} onToggle={(c) => {
+          setCategory(c as Category);
+          setCategoryTouched(true);
+        }} scroll={false} />
 
       <View style={[ui.row, { gap: 10 }]}>
         <View style={{ flex: 1 }}>
@@ -111,7 +136,7 @@ export default function EditItem() {
 
       <View style={[ui.row, { justifyContent: 'space-between', marginTop: 16 }]}>
         <Text style={ui.body}>On wishlist (not owned yet)</Text>
-        <Switch value={wishlist} onValueChange={setWishlist} />
+        <Switch value={wishlist} onValueChange={setWishlist} trackColor={{ true: colors.accent }} thumbColor={colors.card} />
       </View>
 
       <Button title={existing ? 'Save changes' : 'Add to wardrobe'} onPress={save} style={{ marginTop: 24 }} />

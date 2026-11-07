@@ -4,21 +4,10 @@ import { FlatList, Pressable, ScrollView, Text, TextInput, useWindowDimensions, 
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
 import { Button, ChipRow, confirm, ItemThumb } from '../../components/ui';
+import { SLOT } from '../../lib/outfitLayout';
 import { useStore } from '../../lib/store';
 import { colors, ui } from '../../lib/theme';
 import { CATEGORIES, OutfitPiece } from '../../lib/types';
-
-/** Default spot on the canvas for each category, so new pieces land roughly where they'd be worn. */
-const SLOT: Record<string, { x: number; y: number }> = {
-  Tops: { x: 0.35, y: 0.28 },
-  Outerwear: { x: 0.68, y: 0.28 },
-  Dresses: { x: 0.4, y: 0.4 },
-  Bottoms: { x: 0.35, y: 0.66 },
-  Shoes: { x: 0.68, y: 0.8 },
-  Bags: { x: 0.75, y: 0.58 },
-  Accessories: { x: 0.8, y: 0.12 },
-  Other: { x: 0.5, y: 0.5 },
-};
 
 export default function OutfitBuilder() {
   const { id } = useLocalSearchParams<{ id: string }>();

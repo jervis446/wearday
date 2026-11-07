@@ -21,9 +21,14 @@ export default function Outfits() {
         keyExtractor={(o) => o.id}
         contentContainerStyle={{ padding: 16, gap: 12, maxWidth: 700, width: '100%', alignSelf: 'center' }}
         columnWrapperStyle={{ gap: 12 }}
-        ListHeaderComponent={<Button title="+ Create outfit" onPress={() => router.push('/outfit/new')} />}
+        ListHeaderComponent={
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Button title="✨ Suggest" onPress={() => router.push('/suggest')} style={{ flex: 1 }} />
+            <Button title="+ Create" variant="secondary" onPress={() => router.push('/outfit/new')} style={{ flex: 1 }} />
+          </View>
+        }
         ListEmptyComponent={
-          <Empty title="No outfits yet" hint="Combine pieces from your wardrobe on a canvas and save them as outfits." />
+          <Empty title="No outfits yet" hint="Combine pieces from your wardrobe on a canvas, or tap Suggest for an idea." />
         }
         renderItem={({ item: o }) => (
           <Pressable onPress={() => router.push(`/outfit/${o.id}`)} style={{ width: size }}>

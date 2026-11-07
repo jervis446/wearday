@@ -10,6 +10,8 @@ Built from scratch: no code or assets were taken from the original app.
 - **Outfit builder**: drag pieces around a canvas, resize them, and bring them to the front. Outfits can be named and tagged.
 - **Calendar**: log what you wore each day (a saved outfit and/or individual items), with an optional outfit selfie and a note. The month grid shows the selfie or a piece of clothing for each logged day.
 - **Stats**: item count, closet value, share of items worn, days logged, a breakdown by category, most worn items, best cost per wear, and never-worn items.
+- **Auto-tagging**: after you take a photo, the app fills in the colour, and in a real build the category too (Google ML Kit, on the phone). Nothing is uploaded.
+- **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
 - **Item detail**: times worn, cost per wear, last worn date, and how many outfits use the item.
 
 All data is stored on the device (AsyncStorage). Photos are copied into the app's document directory.
@@ -40,6 +42,20 @@ eas build -p ios --profile production             # needs an Apple Developer acc
 - `src/app/`: screens (Expo Router). `(tabs)` holds Wardrobe / Outfits / Calendar / Stats; `item/`, `outfit/` and `log.tsx` are detail and edit screens.
 - `src/lib/store.tsx`: data store and persistence. `types.ts` is the data model and `images.ts` handles the camera and photo library.
 - `src/components/`: shared UI and the outfit canvas.
+
+## AI setup
+
+1. Deploy the Worker: follow [`worker/README.md`](worker/README.md).
+2. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_SUGGEST_URL`.
+
+Category auto-detection uses a native module (`@react-native-ml-kit/image-labeling`). It works in development and EAS builds, but not in Expo Go or on web, where the app simply skips it. Colour detection works everywhere.
+
+## Tests
+
+```bash
+npm test               # auto-tagging logic
+cd worker && npm test  # suggestion Worker
+```
 
 ## Not yet implemented
 

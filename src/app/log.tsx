@@ -11,7 +11,7 @@ import { CATEGORIES, todayKey } from '../lib/types';
 
 /** Log what was worn on a day: a saved outfit and/or individual items, plus an outfit selfie. */
 export default function LogOutfit() {
-  const params = useLocalSearchParams<{ date?: string; itemId?: string; logId?: string }>();
+  const params = useLocalSearchParams<{ date?: string; itemId?: string; itemIds?: string; logId?: string }>();
   const { items, outfits, logs, saveLog, deleteLog } = useStore();
   const existing = params.logId
     ? logs.find((l) => l.id === params.logId)
@@ -20,7 +20,9 @@ export default function LogOutfit() {
   const [date] = useState(existing?.date ?? params.date ?? todayKey());
   const [outfitId, setOutfitId] = useState(existing?.outfitId);
   const [itemIds, setItemIds] = useState<string[]>(
-    existing?.itemIds ?? (params.itemId ? [params.itemId] : []),
+    params.itemIds
+      ? [...new Set([...(existing?.itemIds ?? []), ...params.itemIds.split(',').filter(Boolean)])]
+      : (existing?.itemIds ?? (params.itemId ? [params.itemId] : [])),
   );
   const [selfieUri, setSelfieUri] = useState(existing?.selfieUri);
   const [note, setNote] = useState(existing?.note ?? '');

@@ -32,6 +32,12 @@
           "photosPermission": "Allow access to your photos to add clothes and outfit selfies.",
           "cameraPermission": "Allow camera access to photograph clothes and outfit selfies."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Wearday uses your approximate location to check today’s weather for outfit suggestions."
+        }
       ]
     ],
     "scheme": "wearday",

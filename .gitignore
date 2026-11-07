@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# AI suggestion worker config
+.env
+.dev.vars
+worker/.wrangler/
+worker/node_modules/
