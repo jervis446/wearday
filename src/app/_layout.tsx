@@ -35,6 +35,7 @@ function AppStack() {
         <Stack.Screen name="item/[id]" options={{ title: 'Item' }} />
         <Stack.Screen name="item/edit" options={{ title: 'Add item', presentation: 'modal' }} />
         <Stack.Screen name="outfit/[id]" options={{ title: 'Outfit builder' }} />
+        <Stack.Screen name="outfit/share" options={{ title: 'Share outfit', presentation: 'modal' }} />
         <Stack.Screen name="suggest" options={{ title: 'Suggest an outfit' }} />
         <Stack.Screen name="log" options={{ title: 'Log outfit', presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />

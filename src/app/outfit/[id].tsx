@@ -47,7 +47,18 @@ export default function OutfitBuilder() {
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 12, alignItems: 'center' }]} scrollEnabled={selected == null}>
-      <Stack.Screen options={{ title: existing ? 'Edit outfit' : 'New outfit' }} />
+      <Stack.Screen
+        options={{
+          title: existing ? 'Edit outfit' : 'New outfit',
+          headerRight: existing
+            ? () => (
+                <Pressable onPress={() => router.push({ pathname: '/outfit/share', params: { id: existing.id } })} hitSlop={12}>
+                  <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Share</Text>
+                </Pressable>
+              )
+            : undefined,
+        }}
+      />
       <OutfitCanvas
         pieces={pieces}
         items={items}

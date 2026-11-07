@@ -9,6 +9,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Item status**: Available, In laundry, Lent out (to whom), Sold or Donated. Laundry and lent items are skipped by suggestions; sold and donated items move to Archived with their history kept.
 - **Wishlist**: items you want but don't own yet. "I bought it" moves them into the closet.
 - **Outfit builder**: drag pieces around a canvas, resize them, and bring them to the front. Outfits can be named and tagged.
+- **Share outfits**: turn any outfit into a branded image card and share it to Instagram, WhatsApp and other apps.
 - **Calendar**: log what you wore each day (a saved outfit and/or individual items), with an optional outfit selfie and a note. The month grid shows the selfie or a piece of clothing for each logged day.
 - **Stats**: item count, closet value, share of items worn, days logged, a breakdown by category, most worn items, best cost per wear, and never-worn items.
 - **Auto-tagging**: after you take a photo, the app fills in the colour, and in a real build the category too (Google ML Kit, on the phone). Nothing is uploaded.
@@ -65,4 +66,4 @@ cd worker && npm test  # suggestion Worker
 ## Not yet implemented
 
 - Cloud sync and accounts (for example Supabase or Firebase).
-- Packing lists and outfit sharing.
+- Packing lists.
