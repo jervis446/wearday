@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wearday Privacy Policy</title>
+<style>
+  :root { --bg:#F7F3EE; --card:#fff; --text:#2A2420; --muted:#6f665e; --accent:#A8502F; --border:#EAE3DA; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161311; --card:#221D1A; --text:#F3EDE7; --muted:#B5AAA0; --accent:#E8896A; --border:#352E29; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:19px; margin:32px 0 8px; }
+  .muted { color:var(--muted); } a { color:var(--accent); }
+  .box { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:16px 0; }
+  table { width:100%; border-collapse:collapse; font-size:15px; } th, td { text-align:left; vertical-align:top; padding:8px 6px; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Wearday Privacy Policy</h1>
+  <p class="muted">Effective 7 November 2026</p>
+
+  <div class="box">
+    <strong>In short:</strong> Wearday keeps your wardrobe on your phone. There are no accounts, no ads and no analytics or
+    tracking. Your photos never leave your device unless you choose to share or back them up yourself. The only thing sent
+    over the internet is the optional <em>Suggest an outfit</em> request, which contains a text description of your clothes
+    and, if you allow it, your approximate location.
+  </div>
+
+  <h2>What stays on your device</h2>
+  <p>Everything you add to Wearday is stored only in the app's private storage on your phone:</p>
+  <ul>
+    <li>clothing photos, outfit selfies and the details you enter (name, category, colour, brand, size, price, tags, notes and status);</li>
+    <li>outfits, collections, trips and packing lists;</li>
+    <li>your outfit calendar and the statistics calculated from it;</li>
+    <li>your settings.</li>
+  </ul>
+  <p>We do not have a server that stores this data, and we cannot see it.</p>
+
+  <h2>Processing that happens on your device</h2>
+  <ul>
+    <li><strong>Colour and category detection.</strong> When you add a photo, the app estimates its colour, and on supported phones its
+      category, using on-device processing (Google ML Kit). The photo is not uploaded.</li>
+    <li><strong>Background removal.</strong> On supported phones, cutting the item out of its background uses Google ML Kit (Android) or
+      Apple Vision (iOS) on the device. The photo is not uploaded. On Android, Google Play services may download the
+      on-device model the first time it is used.</li>
+    <li><strong>Reminders.</strong> Daily reminders are local notifications scheduled on your phone. No push-notification service is used.</li>
+  </ul>
+
+  <h2>What is sent over the internet, and only when you ask</h2>
+  <div class="box">
+    <table>
+      <tr><th>Feature</th><th>What is sent</th><th>Where it goes</th></tr>
+      <tr>
+        <td>Suggest an outfit</td>
+        <td>A text list of the clothes in your closet (item id, name, category, colour, seasons, tags, how many times worn, date last
+          worn), the occasion you picked and today's date. <strong>No photos.</strong></td>
+        <td>Our suggestion service on Cloudflare Workers, which asks an AI model hosted by Cloudflare (Workers AI) for an outfit.</td>
+      </tr>
+      <tr>
+        <td>Use today's weather (optional)</td>
+        <td>Your location rounded to about 1&nbsp;km, sent only if you switch this on and grant location permission.</td>
+        <td>Our suggestion service, which passes the rounded coordinates to <a href="https://open-meteo.com/">Open-Meteo</a> to get
+          the forecast. Open-Meteo sees our server, not your device.</td>
+      </tr>
+    </table>
+  </div>
+  <p>We do not store the content of these requests. Like any web service, Cloudflare processes basic request information (such
+    as IP address and time) to deliver and protect the service, and our service keeps short-lived technical logs of errors.
+    Cloudflare's handling of data is described in the <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare privacy policy</a>.
+    If you don't use <em>Suggest an outfit</em>, the app makes no network requests to us.</p>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><strong>Camera and photos:</strong> to photograph clothes and outfit selfies, or pick them from your gallery.</li>
+    <li><strong>Location (optional):</strong> only for weather-aware suggestions, as described above.</li>
+    <li><strong>Notifications (optional):</strong> only for the daily reminder you switch on.</li>
+  </ul>
+  <p>You can change these at any time in your phone's settings. The app keeps working without them.</p>
+
+  <h2>Backups and sharing</h2>
+  <p>When you export a backup or share an outfit image, the file is handed to the app or service you choose (for example Google
+    Drive, iCloud or WhatsApp). Those services handle it under their own privacy policies. Wearday does not upload backups anywhere itself.</p>
+
+  <h2>Deleting your data</h2>
+  <p>Delete individual items, outfits, trips or calendar entries in the app at any time. Uninstalling Wearday deletes all of its data
+    from your phone. Because we hold no account or wardrobe data on a server, there is nothing else to delete. Backup files you
+    exported stay wherever you saved them until you delete them.</p>
+
+  <h2>Children</h2>
+  <p>Wearday is not directed at children under 13, and we do not knowingly collect personal information from children.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, we will update this page and its effective date. Significant changes will also be noted in the app's release notes.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about privacy: <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a></p>
+</main>
+</body>
+</html>

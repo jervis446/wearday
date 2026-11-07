@@ -59,6 +59,10 @@ eas build -p ios --profile production             # needs an Apple Developer acc
 
 Category auto-detection uses a native module (`@react-native-ml-kit/image-labeling`). It works in development and EAS builds, but not in Expo Go or on web, where the app simply skips it. Colour detection works everywhere.
 
+## Store listing
+
+`store/listing.md` has the store descriptions, keywords and answers for the Play Data safety and App Store privacy forms. `store/screenshots/` has 1080×1920 screenshots, and `docs/privacy.html` is the privacy policy, ready for GitHub Pages.
+
 ## Tests
 
 ```bash

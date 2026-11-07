@@ -92,7 +92,9 @@ export default function Calendar() {
       </View>
 
       <View style={{ marginTop: 20, gap: 10 }}>
-        <Text style={ui.h2}>{selected}</Text>
+        <Text style={ui.h2}>
+          {new Date(`${selected}T12:00:00`).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+        </Text>
         {log ? (
           <>
             {log.selfieUri ? (
