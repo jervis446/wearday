@@ -20,7 +20,9 @@ export default function AuthCallback() {
       return;
     }
     supabase.auth.exchangeCodeForSession(params.code).then(({ error: e }) => {
-      if (e && !/already|used/i.test(e.message)) setError(e.message);
+      if (e && /verifier/i.test(e.message)) setError('Open the sign-in link on the same phone where you asked for it, or request a new one there.');
+      else if (e && /expired|invalid/i.test(e.message)) setError('That sign-in link has expired. Request a new one in Settings → Account & sync.');
+      else if (e && !/already|used/i.test(e.message)) setError(e.message);
       else router.replace('/account');
     });
   }, [params.code, params.error_description]);

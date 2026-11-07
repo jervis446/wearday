@@ -248,11 +248,11 @@ otp_expiry = 3600
 # Uncomment to customize email template
 # Sign-in emails carry a 6-digit code (the app asks for the code, not a link).
 [auth.email.template.magic_link]
-subject = "Your Wearday sign-in code"
+subject = "Sign in to Wearday"
 content_path = "./supabase/templates/code.html"
 
 [auth.email.template.confirmation]
-subject = "Your Wearday sign-in code"
+subject = "Sign in to Wearday"
 content_path = "./supabase/templates/code.html"
 
 # [auth.email.template.invite]

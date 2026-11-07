@@ -76,7 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       ready,
       async sendCode(email) {
-        const { error } = await need().auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: true } });
+        // The email carries a sign-in link (opens the app via redirectUrl) and, if the template includes it, a 6-digit code.
+        const { error } = await need().auth.signInWithOtp({
+          email: email.trim(),
+          options: { shouldCreateUser: true, emailRedirectTo: redirectUrl() },
+        });
         if (error) throw friendly(error);
       },
       async verifyCode(email, code) {

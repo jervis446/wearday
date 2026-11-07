@@ -131,7 +131,7 @@ function SignIn() {
                 onSubmitEditing={() => validEmail && run('send', async () => (await sendCode(email), setCodeSentTo(email.trim())))}
               />
               <Button
-                title={busy === 'send' ? 'Sending…' : 'Email me a code'}
+                title={busy === 'send' ? 'Sending…' : 'Email me a sign-in link'}
                 variant="secondary"
                 onPress={() =>
                   !busy &&
@@ -147,7 +147,8 @@ function SignIn() {
           ) : (
             <>
               <Text style={ui.body}>
-                We sent a 6-digit code to <Text style={{ fontWeight: '700' }}>{codeSentTo}</Text>.
+                We emailed <Text style={{ fontWeight: '700' }}>{codeSentTo}</Text>. Open the email on this phone and tap{' '}
+                <Text style={{ fontWeight: '700' }}>Sign in to Wearday</Text>. If the email has a 6-digit code, you can enter it below instead.
               </Text>
               <TextInput
                 style={[ui.input, { fontSize: 24, letterSpacing: 8, textAlign: 'center' }]}
@@ -170,7 +171,7 @@ function SignIn() {
                   <Text style={[ui.body, { color: colors.accent }]}>Use a different email</Text>
                 </Pressable>
                 <Pressable onPress={() => !busy && run('send', () => sendCode(codeSentTo))} hitSlop={8}>
-                  <Text style={[ui.body, { color: colors.accent }]}>Resend code</Text>
+                  <Text style={[ui.body, { color: colors.accent }]}>Resend email</Text>
                 </Pressable>
               </View>
             </>
