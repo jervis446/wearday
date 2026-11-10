@@ -5,6 +5,7 @@ import { AppState } from 'react-native';
 import { useAuth } from '../auth';
 import { canSync, FREE_LIMITS } from '../plans';
 import { usePremium } from '../premium';
+import { useSettings } from '../settings';
 import { useStore } from '../store';
 import { supabase } from '../supabase';
 import { emptySyncState, pendingChanges, runSync, type SyncState } from './engine';
@@ -36,6 +37,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const store = useStore();
   const { isPremium } = usePremium();
+  const { update: updateSettings } = useSettings();
   const { getDb, mutate, ownerId, getOwner, setOwner, resetFor } = store;
   const uid = session?.user.id;
   // The local data belongs to the signed-in user (adopted or theirs). Never sync otherwise.
@@ -113,8 +115,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       // data is removed from this phone; their cloud copy is untouched.
       if (ownerId) clearSyncState(ownerId).catch(() => {});
       resetFor(uid);
+      // Their style description is personal too.
+      updateSettings({ styleNotes: undefined });
     }
-  }, [uid, store.ready, ownerId, setOwner, resetFor]);
+  }, [uid, store.ready, ownerId, setOwner, resetFor, updateSettings]);
 
   // Start / stop with sign-in.
   useEffect(() => {

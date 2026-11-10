@@ -30,6 +30,7 @@ export type EventName =
   | 'item_added'
   | 'outfit_saved'
   | 'outfit_logged'
+  | 'outfit_rated'
   | 'suggestion_requested'
   | 'trip_created'
   | 'outfit_shared'

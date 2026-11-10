@@ -6,20 +6,34 @@ import { OutfitCanvas } from '../components/OutfitCanvas';
 import { Button, ChipRow, confirm, ItemThumb } from '../components/ui';
 import { track } from '../lib/analytics';
 import { chooseImage } from '../lib/images';
+import { moodByLabel, moodChip, moodFromChip, MOODS } from '../lib/moods';
 import { useStore } from '../lib/store';
-import { useTheme } from '../lib/theme';
-import { CATEGORIES, inCloset, todayKey } from '../lib/types';
+import { font, useTheme } from '../lib/theme';
+import { CATEGORIES, dayLabel, daysAgoKey, inCloset, OutfitRating, RATING_LABEL, RATINGS, todayKey } from '../lib/types';
 
-/** Log what was worn on a day: a saved outfit and/or individual items, plus an outfit selfie. */
+const MAX_DAYS_BACK = 365;
+
+/**
+ * Log what was worn on a day: a saved outfit and/or individual items, plus an outfit selfie,
+ * how it felt and the mood. With `past=1` it starts on yesterday and lets you pick an earlier
+ * day, to add outfits worn before (they teach suggestions your style, see lib/style.ts).
+ */
 export default function LogOutfit() {
   const { colors, ui } = useTheme();
-  const params = useLocalSearchParams<{ date?: string; itemId?: string; itemIds?: string; logId?: string }>();
+  const params = useLocalSearchParams<{ date?: string; itemId?: string; itemIds?: string; logId?: string; past?: string; mood?: string }>();
   const { items, outfits, logs, saveLog, deleteLog } = useStore();
-  const existing = params.logId
-    ? logs.find((l) => l.id === params.logId)
-    : logs.find((l) => l.date === (params.date ?? todayKey()));
+  const past = params.past === '1';
+  const startDate = params.date ?? (past ? daysAgoKey(1) : todayKey());
+  const [existing] = useState(() =>
+    params.logId ? logs.find((l) => l.id === params.logId) : past ? undefined : logs.find((l) => l.date === startDate),
+  );
 
-  const [date] = useState(existing?.date ?? params.date ?? todayKey());
+  const [daysBack, setDaysBack] = useState(past ? 1 : 0);
+  const date = existing?.date ?? (past ? daysAgoKey(daysBack) : startDate);
+  // Adding a past outfit on a day that already has one: add to that day's entry.
+  const sameDay = existing ? undefined : logs.find((l) => l.date === date);
+  const [rating, setRating] = useState<OutfitRating | undefined>(existing?.rating);
+  const [mood, setMood] = useState<string | undefined>(existing?.mood ?? (moodByLabel(params.mood) ? params.mood : undefined));
   const [outfitId, setOutfitId] = useState(existing?.outfitId);
   const [itemIds, setItemIds] = useState<string[]>(
     params.itemIds
@@ -34,8 +48,19 @@ export default function LogOutfit() {
     setItemIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const save = () => {
-    saveLog({ id: existing?.id, date, outfitId, itemIds, selfieUri, note: note.trim() || undefined });
-    if (!existing) track('outfit_logged', { items: itemIds.length, outfit: !!outfitId, selfie: !!selfieUri });
+    const base = existing ?? sameDay;
+    saveLog({
+      id: base?.id,
+      date,
+      outfitId: outfitId ?? sameDay?.outfitId,
+      itemIds: sameDay ? [...new Set([...sameDay.itemIds, ...itemIds])] : itemIds,
+      selfieUri: selfieUri ?? sameDay?.selfieUri,
+      note: note.trim() || sameDay?.note || undefined,
+      rating: rating ?? sameDay?.rating,
+      mood: mood ?? sameDay?.mood,
+    });
+    if (!existing) track('outfit_logged', { items: itemIds.length, outfit: !!outfitId, selfie: !!selfieUri, past: date !== todayKey(), mood: mood ?? '' });
+    if (rating && rating !== existing?.rating) track('outfit_rated', { rating, past: date !== todayKey() });
     router.back();
   };
 
@@ -43,7 +68,34 @@ export default function LogOutfit() {
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { paddingBottom: 60, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
-      <Stack.Screen options={{ title: `Outfit for ${date}` }} />
+      <Stack.Screen options={{ title: past && !existing ? 'Add a past outfit' : `Outfit for ${dayLabel(date)}` }} />
+
+      {past && !existing ? (
+        <>
+          <Text style={ui.label}>When did you wear it?</Text>
+          <View style={[ui.row, { gap: 10 }]}>
+            <Button
+              title="‹"
+              variant="secondary"
+              style={{ width: 52 }}
+              onPress={() => setDaysBack((d) => Math.min(MAX_DAYS_BACK, d + 1))}
+            />
+            <Text style={[ui.body, { flex: 1, textAlign: 'center', fontFamily: font.bodyBold }]}>{dayLabel(date)}</Text>
+            <Button
+              title="›"
+              variant="secondary"
+              style={{ width: 52, opacity: daysBack <= 1 ? 0.4 : 1 }}
+              onPress={() => setDaysBack((d) => Math.max(1, d - 1))}
+            />
+          </View>
+          <ChipRow
+            options={['1 week ago', '2 weeks ago', '1 month ago']}
+            selected={[]}
+            onToggle={(o) => setDaysBack(o.startsWith('1 week') ? 7 : o.startsWith('2') ? 14 : 30)}
+          />
+          {sameDay ? <Text style={ui.muted}>You already logged this day: what you pick is added to it.</Text> : null}
+        </>
+      ) : null}
 
       <Text style={ui.label}>Outfit selfie</Text>
       <Pressable
@@ -93,6 +145,29 @@ export default function LogOutfit() {
             <ItemThumb item={item} size={76} badge={itemIds.includes(item.id) ? '✓' : undefined} />
           </Pressable>
         )}
+      />
+
+      <Text style={ui.label}>How did it feel?</Text>
+      <ChipRow
+        options={RATINGS.map((r) => RATING_LABEL[r])}
+        selected={rating ? [RATING_LABEL[rating]] : []}
+        onToggle={(label) => {
+          const r = RATINGS.find((x) => RATING_LABEL[x] === label);
+          setRating((cur) => (cur === r ? undefined : r));
+        }}
+        scroll={false}
+      />
+      <Text style={ui.muted}>Ratings teach Wearday your style, so suggestions get more like the outfits you love.</Text>
+
+      <Text style={ui.label}>Mood</Text>
+      <ChipRow
+        options={MOODS.map(moodChip)}
+        selected={mood ? [moodChip(moodByLabel(mood) ?? MOODS[0])] : []}
+        onToggle={(chip) => {
+          const m = moodFromChip(chip)?.label;
+          setMood((cur) => (cur === m ? undefined : m));
+        }}
+        scroll={false}
       />
 
       <Text style={ui.label}>Note</Text>

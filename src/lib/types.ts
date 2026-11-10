@@ -74,7 +74,15 @@ export type WearLog = {
   itemIds: string[];
   selfieUri?: string;
   note?: string;
+  /** How it felt to wear: teaches suggestions the person's style (see style.ts). */
+  rating?: OutfitRating;
+  /** The mood it was worn in (a MOODS label from moods.ts). */
+  mood?: string;
 };
+
+export const RATINGS = ['love', 'ok', 'dislike'] as const;
+export type OutfitRating = (typeof RATINGS)[number];
+export const RATING_LABEL: Record<OutfitRating, string> = { love: '❤️ Loved it', ok: '🙂 It was fine', dislike: '👎 Not me' };
 
 /** A non-clothing thing to pack, e.g. "Charger". */
 export type PackExtra = { id: string; text: string; packed: boolean };
@@ -110,6 +118,20 @@ export type Db = {
 
 export const uid = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+/** The local date `days` days before `from` (YYYY-MM-DD). */
+export const daysAgoKey = (days: number, from = new Date()) => {
+  const d = new Date(from);
+  d.setDate(d.getDate() - days);
+  return todayKey(d);
+};
+
+/** "Today", "Yesterday", or the date in the phone's format. */
+export function dayLabel(date: string) {
+  if (date === todayKey()) return 'Today';
+  if (date === daysAgoKey(1)) return 'Yesterday';
+  return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 export const todayKey = (d = new Date()) => {
   const m = String(d.getMonth() + 1).padStart(2, '0');
