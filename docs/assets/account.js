@@ -67,9 +67,39 @@ $('code-form').addEventListener('submit', async (e) => {
 });
 $('restart').addEventListener('click', () => { $('email-form').hidden = false; $('code-form').hidden = true; $('auth-msg').textContent = ''; });
 $('signout').addEventListener('click', () => sb.auth.signOut());
-$('google').addEventListener('click', async () => {
-  $('auth-msg').textContent = '';
+// Google's own sign-in button (Google Identity Services). The sign-in sheet then names Asanoha,
+// not the Supabase server, and there's no redirect. Falls back to the redirect flow if it can't load.
+const GOOGLE_CLIENT_ID = '318149293979-3sc40vsvh13ufntf8uiutkmmj10hmted.apps.googleusercontent.com';
+const redirectGoogle = async () => {
   const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/account.html', queryParams: { prompt: 'select_account' } } });
+  if (error) $('auth-msg').textContent = error.message;
+};
+$('google').addEventListener('click', redirectGoogle);
+(async () => {
+  try {
+    await new Promise((ok, bad) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = bad; document.head.appendChild(s); });
+    const raw = crypto.randomUUID() + crypto.randomUUID();
+    const hashed = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      nonce: hashed,
+      use_fedcm_for_button: true,
+      callback: async ({ credential }) => {
+        $('auth-msg').textContent = 'Signing you in…';
+        const { error } = await sb.auth.signInWithIdToken({ provider: 'google', token: credential, nonce: raw });
+        $('auth-msg').textContent = error ? 'Google sign-in didn’t work. Try again or use your email.' : '';
+      },
+    });
+    const slot = document.createElement('div');
+    slot.id = 'gsi';
+    slot.style.cssText = 'display:flex;justify-content:center;min-height:44px';
+    $('google').replaceWith(slot);
+    const width = Math.min(400, slot.parentElement.clientWidth - 2);
+    google.accounts.id.renderButton(slot, { theme: matchMedia('(prefers-color-scheme: light)').matches ? 'outline' : 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', width });
+  } catch (e) {
+    console.warn('Google button unavailable, using redirect sign-in', e);
+  }
+})();
   if (error) $('auth-msg').textContent = /not enabled|provider/i.test(error.message) ? 'Google sign-in opens soon. Use your email for now.' : error.message;
 });
 
