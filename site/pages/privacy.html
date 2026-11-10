@@ -1,0 +1,120 @@
+<!--
+title: Privacy Policy · Wearday
+description: How Wearday, by Asanoha Ayurveda LLP, collects, uses and protects your data.
+-->
+<div class="wrap doc">
+  <div class="kicker">Legal</div>
+  <h1>Privacy Policy</h1>
+  <p class="muted">Effective 7 November 2026 · Last updated 10 November 2026</p>
+
+  <div class="box">
+    <strong>In short:</strong> you sign in to Wearday with Apple, Google or your email. Your wardrobe (including photos) is kept on
+    your phone and in your private cloud account, so it’s backed up and syncs between your devices. Only you can see it. We use
+    privacy-friendly usage statistics that you can turn off, and we never sell your data or use it for advertising.
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a class="chip" href="#who">Who we are</a><a class="chip" href="#account">Account</a><a class="chip" href="#device">On-device</a>
+    <a class="chip" href="#payments">Payments &amp; Noha Money</a><a class="chip" href="#ai">AI &amp; weather</a><a class="chip" href="#stats">Usage stats</a>
+    <a class="chip" href="#deletion">Deleting data</a><a class="chip" href="#rights">Your rights</a><a class="chip" href="#contact">Contact</a>
+  </nav>
+
+  <h2 id="who">Who we are</h2>
+  <p>Wearday is made by <strong>Asanoha Ayurveda LLP</strong>, Bangalore, India (“Asanoha”, “we”). We are the data fiduciary for the
+    personal data described here under India’s Digital Personal Data Protection Act, 2023. This policy covers the Wearday apps for
+    Android and iPhone and the website wearday.asanoha.co.in.</p>
+
+  <h2 id="account">Your account and cloud sync</h2>
+  <p>You need an account to use Wearday. We store the following so it can be backed up and synced to your other devices:</p>
+  <ul>
+    <li><strong>Account details:</strong> your email address and how you signed in (email code, Google or Apple). With Apple’s “Hide My
+      Email” we receive a private relay address instead.</li>
+    <li><strong>Your wardrobe:</strong> clothing photos and outfit selfies, item details (name, category, colour, brand, size, price, tags,
+      notes, status), outfits, collections, your outfit calendar, trips and packing lists.</li>
+  </ul>
+  <p>This data is stored with our hosting provider <a href="https://supabase.com/privacy">Supabase</a> (servers in Mumbai, India),
+    encrypted in transit, and protected so that only your account can read or change it. We don’t look at your wardrobe or photos
+    unless you ask us for help and give permission, or the law requires it.</p>
+  <p>Your Wearday account is an <strong>Asanoha account</strong>: the same sign-in also works on asanoha.co.in. Your wardrobe is never
+    shared with the Asanoha shop; only your email, account ID and Noha Money wallet are common to both.</p>
+
+  <h2 id="device">Processing on your device</h2>
+  <ul>
+    <li><strong>Colour and category detection</strong> and <strong>background removal</strong> run on your phone (Google ML Kit on Android,
+      Apple Vision on iPhone). Photos are not uploaded for this.</li>
+    <li><strong>Reminders</strong> are local notifications scheduled on your phone.</li>
+    <li>The <strong>Fit Slots</strong> game on our website runs entirely in your browser and only remembers your best score on your device.</li>
+  </ul>
+
+  <h2 id="payments">Payments and Noha Money</h2>
+  <p><strong>App store purchases.</strong> Premium bought in the app is sold by Google Play or the Apple App Store. They process your
+    payment; we never see your card, UPI or bank details. We use <a href="https://www.revenuecat.com/privacy">RevenueCat</a> to know who
+    has Premium. It receives the store’s purchase records (product, dates, renewal status and store transaction IDs), linked to your
+    random account ID.</p>
+  <p><strong>Noha Money.</strong> Noha Money is the Asanoha wallet, shared by Asanoha’s products. For each wallet we keep a ledger of every
+    credit and debit: amount, date, which product it was for (for example Wearday Premium or an Asanoha order), and a reference such as
+    an order ID or bank reference (UTR). When you add money by UPI, the payment is processed by our payment page; we receive the amount,
+    status and bank reference, never your UPI PIN or bank login. We keep these records for 8 years, as Indian tax and accounting law
+    requires.</p>
+
+  <h2 id="ai">Outfit suggestions and weather</h2>
+  <div class="box">
+    <table>
+      <tr><th>Feature</th><th>What is sent</th><th>Where it goes</th></tr>
+      <tr><td>Suggest an outfit</td><td>A text list of your clothes (item ID, name, category, colour, seasons, tags, wear count, date last
+        worn), the occasion and today’s date. <strong>No photos.</strong></td><td>Our suggestion service on Cloudflare Workers, which asks an AI
+        model hosted by Cloudflare. We don’t store these requests.</td></tr>
+      <tr><td>Use today’s weather (optional)</td><td>Your location rounded to about 1&nbsp;km, only if you switch it on and allow location.</td>
+        <td>Our suggestion service, which passes it to <a href="https://open-meteo.com/">Open-Meteo</a> for the forecast.</td></tr>
+    </table>
+  </div>
+
+  <h2 id="stats">Usage statistics</h2>
+  <p>To learn which features are useful, the app sends usage events to <a href="https://posthog.com/privacy">PostHog</a> (EU): screens
+    opened and actions such as “added an item” or “saved an outfit”, with simple counts and basic device info (model, OS, app version,
+    language). Never photos, item names, notes, your email or your location. Events are linked to your random account ID. There is no
+    screen recording. Turn it off any time in <strong>Settings → Privacy</strong>.</p>
+  <p>This website doesn’t use advertising or tracking cookies. It stores your theme choice and game score in your browser, and the account
+    page keeps you signed in with your browser’s local storage.</p>
+
+  <h2>What we don’t do</h2>
+  <ul><li>No advertising, and no selling or sharing your data with advertisers or data brokers.</li><li>No tracking across other companies’ apps or websites.</li></ul>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><strong>Camera and photos:</strong> to photograph clothes and outfit selfies, or pick them from your gallery.</li>
+    <li><strong>Approximate location (optional):</strong> only for weather-aware suggestions.</li>
+    <li><strong>Notifications (optional):</strong> only for the daily reminder you switch on.</li>
+  </ul>
+
+  <h2>Who we share data with</h2>
+  <p>Only service providers that run Wearday for us, under contract and only for that purpose: Supabase (database, sign-in, photo storage),
+    Cloudflare (AI suggestions), PostHog (usage statistics), RevenueCat (store purchases), Google and Apple (sign-in and app stores), and our
+    email provider (sign-in emails). We may disclose data if the law requires it.</p>
+
+  <h2 id="deletion">Keeping and deleting your data</h2>
+  <ul>
+    <li>Delete items, outfits, trips or calendar entries in the app at any time; they’re deleted from your cloud account too.</li>
+    <li><strong>Delete your account</strong> in <strong>Settings → Account → Delete account</strong>, or see <a href="/delete-account.html">how to delete
+      your account</a>. This permanently deletes your account, wardrobe and photos from the cloud.</li>
+    <li>We keep cloud data while you have an account. Usage statistics are kept up to 12 months. Payment and Noha Money ledger records are kept
+      for 8 years after the transaction because the law requires it, even after you delete your account.</li>
+  </ul>
+
+  <h2 id="rights">Your rights</h2>
+  <p>You can access, export (Settings → Backup), correct or delete your data at any time. You can also ask us for a summary of the data we
+    hold, withdraw consent, or nominate someone to act for you, by writing to us. If you’re not happy with our answer, you can complain to
+    the Data Protection Board of India.</p>
+
+  <h2>Children</h2>
+  <p>Wearday is for people aged 13 and over. If you’re under 18, use Wearday with a parent or guardian’s permission. Noha Money and payments
+    are only for people aged 18 and over.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, we’ll update this page and its date, and tell you in the app for significant changes.</p>
+
+  <h2 id="contact">Contact and grievance officer</h2>
+  <p>Asanoha Ayurveda LLP, [Registered office address], Bangalore [PIN], India.<br>
+    Grievance officer: [Grievance Officer name] · <a href="mailto:orders@asanoha.co.in?subject=Wearday%20privacy">orders@asanoha.co.in</a><br>
+    We reply within 7 days and resolve complaints within 30 days. See also the <a href="/terms.html">Terms of Use</a>.</p>
+</div>

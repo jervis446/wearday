@@ -4,6 +4,7 @@ import * as Updates from 'expo-updates';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, Switch, Text, View } from 'react-native';
 
+import { ByAsanoha } from '../components/NohaMoney';
 import { Button, ChipRow, Section } from '../components/ui';
 import { analyticsConfigured, track } from '../lib/analytics';
 import { exportBackup, pickBackup, restorePhotos } from '../lib/backup';
@@ -19,6 +20,9 @@ import { openPaywall } from '../lib/usePaywall';
 import { useStore } from '../lib/store';
 import { supabaseConfigured } from '../lib/supabase';
 import { useSync } from '../lib/sync/SyncProvider';
+import * as Linking from 'expo-linking';
+
+import { PRIVACY_URL, SUPPORT_URL, TERMS_URL } from '../lib/links';
 import { useTheme } from '../lib/theme';
 
 const THEMES: Record<string, ThemePref> = { 'Match phone': 'system', Light: 'light', Dark: 'dark' };
@@ -242,6 +246,20 @@ export default function SettingsScreen() {
             : ` · update ${String(Updates.updateId).slice(0, 8)} (${Updates.createdAt?.toLocaleDateString() ?? ''})`
           : ''}
       </Text>
+      <View style={[ui.row, { justifyContent: 'center', gap: 18, marginTop: 6 }]}>
+        {[
+          ['Help', SUPPORT_URL],
+          ['Terms', TERMS_URL],
+          ['Privacy', PRIVACY_URL],
+        ].map(([label, url]) => (
+          <Text key={label} style={[ui.muted, { textDecorationLine: 'underline' }]} onPress={() => Linking.openURL(url)}>
+            {label}
+          </Text>
+        ))}
+      </View>
+      <View style={{ alignItems: 'center', marginTop: 10, marginBottom: 20 }}>
+        <ByAsanoha />
+      </View>
     </ScrollView>
   );
 }

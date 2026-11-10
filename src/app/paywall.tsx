@@ -4,17 +4,19 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ComponentProps, useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
+import { ByAsanoha, PayWithNoha } from '../components/NohaMoney';
 import { Button } from '../components/ui';
 import { track } from '../lib/analytics';
 import { FEATURE_REASON, type Feature, parsePeriod, PREMIUM_BENEFITS, trialLabel, yearlySavings } from '../lib/plans';
+import { PRIVACY_URL, TERMS_URL as WEB_TERMS_URL } from '../lib/links';
+import { nohaPayEnabled } from '../lib/noha';
 import { devPremiumAllowed, type Plan, purchasesConfigured, usePremium } from '../lib/premium';
 import { font, useTheme } from '../lib/theme';
 
-const PRIVACY_URL = 'https://jervis446.github.io/wearday/privacy.html';
 const TERMS_URL =
   Platform.OS === 'ios'
     ? 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'
-    : 'https://jervis446.github.io/wearday/terms.html';
+    : WEB_TERMS_URL;
 const STORE = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
 
 export default function Paywall() {
@@ -65,7 +67,7 @@ export default function Paywall() {
     }
   };
 
-  if (premium.isPremium && premium.source === 'store') {
+  if (premium.isPremium && (premium.source === 'store' || premium.source === 'noha')) {
     return (
       <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 14, maxWidth: 520, width: '100%', alignSelf: 'center' }]}>
         <Stack.Screen options={{ title: 'Wearday Premium' }} />
@@ -75,6 +77,7 @@ export default function Paywall() {
           {premium.expiresAt ? (
             <Text style={ui.muted}>
               {premium.willRenew ? 'Renews' : 'Ends'} on {new Date(premium.expiresAt).toLocaleDateString()}
+              {premium.source === 'noha' ? ' · paid with Noha Money' : ''}
             </Text>
           ) : null}
         </View>
@@ -155,7 +158,12 @@ export default function Paywall() {
         </Pressable>
       </View>
 
+      {nohaPayEnabled ? <PayWithNoha onDone={() => router.back()} /> : null}
+
       {devPremiumAllowed ? <DevSwitch /> : null}
+      <View style={{ alignItems: 'center', marginTop: 4 }}>
+        <ByAsanoha />
+      </View>
     </ScrollView>
   );
 }

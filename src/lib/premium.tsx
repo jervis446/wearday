@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import Purchases, { CustomerInfo, LOG_LEVEL, PurchasesPackage } from 'react-native-purchases';
 
 import { useAuth } from './auth';
+import { fetchServerPremium } from './noha';
 
 /**
  * Premium status and purchases via RevenueCat (Google Play Billing + Apple In-App Purchase).
@@ -43,8 +44,8 @@ export type Plan = {
 type Ctx = {
   ready: boolean;
   isPremium: boolean;
-  /** Why the user is premium: a store purchase or the dev switch. */
-  source: 'store' | 'dev' | null;
+  /** Why the user is premium: a store purchase, Noha Money, or the dev switch. */
+  source: 'store' | 'noha' | 'dev' | null;
   expiresAt: string | null;
   willRenew: boolean;
   managementURL: string | null;
@@ -53,6 +54,8 @@ type Ctx = {
   restore: () => Promise<boolean>;
   setDevPremium: (on: boolean) => void;
   devPremium: boolean;
+  /** Re-reads Premium bought outside the store (Noha Money). */
+  refreshServer: () => Promise<void>;
 };
 
 const PremiumCtx = createContext<Ctx | null>(null);
@@ -113,9 +116,25 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
     };
   }, [uid]);
 
+  const [server, setServer] = useState<{ premium: boolean; nohaUntil: string | null }>({ premium: false, nohaUntil: null });
+  const refreshServer = useCallback(async () => {
+    if (!uid) return setServer({ premium: false, nohaUntil: null });
+    try {
+      setServer(await fetchServerPremium());
+    } catch {
+      // Offline: keep the last known state.
+    }
+  }, [uid]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads remote state when the account changes
+    refreshServer();
+  }, [refreshServer]);
+
   const entitlement = info?.entitlements.active[ENTITLEMENT];
   const storePremium = !!entitlement;
-  const isPremium = storePremium || (devPremiumAllowed && devPremium);
+  // The server only returns noha_until while it's still in the future.
+  const nohaPremium = !!server.nohaUntil;
+  const isPremium = storePremium || server.premium || nohaPremium || (devPremiumAllowed && devPremium);
 
   const purchase = useCallback(async (plan: Plan) => {
     if (!plan.pkg) throw new Error('This plan isn’t available right now.');
@@ -144,8 +163,8 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ready,
       isPremium,
-      source: storePremium ? 'store' : isPremium ? 'dev' : null,
-      expiresAt: entitlement?.expirationDate ?? null,
+      source: storePremium ? 'store' : nohaPremium ? 'noha' : server.premium ? 'store' : isPremium ? 'dev' : null,
+      expiresAt: entitlement?.expirationDate ?? (nohaPremium ? server.nohaUntil : null),
       willRenew: !!entitlement?.willRenew,
       managementURL: info?.managementURL ?? null,
       plans,
@@ -153,8 +172,9 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
       restore,
       setDevPremium,
       devPremium,
+      refreshServer,
     }),
-    [ready, isPremium, storePremium, entitlement, info, plans, purchase, restore, setDevPremium, devPremium],
+    [ready, isPremium, storePremium, nohaPremium, server, entitlement, info, plans, purchase, restore, setDevPremium, devPremium, refreshServer],
   );
   return <PremiumCtx.Provider value={value}>{children}</PremiumCtx.Provider>;
 }

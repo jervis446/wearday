@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from 'react-native';
 
+import { NohaWalletCard } from '../components/NohaMoney';
 import { Button, Section } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { supabaseConfigured } from '../lib/supabase';
@@ -72,6 +73,8 @@ function SignedIn() {
           <Text style={ui.muted}>Signed in with {via === 'email' ? 'email' : via[0].toUpperCase() + via.slice(1)}</Text>
         </View>
       </View>
+
+      <NohaWalletCard />
 
       <Section title="Sync">
         <View style={[ui.row, { gap: 8 }]}>

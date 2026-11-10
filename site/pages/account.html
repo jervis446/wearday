@@ -1,0 +1,69 @@
+<!--
+title: Account & Noha Money · Wearday
+description: Sign in to see your Noha Money wallet, history and Wearday Premium.
+-->
+<div class="wrap doc" style="max-width:640px">
+  <div class="kicker">Your account</div>
+  <h1 id="acc-title">sign in.</h1>
+  <p class="muted" id="acc-sub">One account for Wearday and Asanoha. New here? Signing in creates your account and gets you early access.</p>
+
+  <div id="signed-out" class="card stack" hidden>
+    <form id="email-form" class="stack">
+      <label class="sr" for="email">Email</label>
+      <input class="field" id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+      <button class="btn" type="submit">Email me a code</button>
+    </form>
+    <form id="code-form" class="stack" hidden>
+      <p class="muted" style="margin:0" id="code-hint"></p>
+      <label class="sr" for="code">6-digit code</label>
+      <input class="field" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="font:700 28px var(--display);letter-spacing:.4em;text-align:center">
+      <button class="btn" type="submit">Sign in</button>
+      <button class="btn ghost small" type="button" id="restart">Use a different email</button>
+    </form>
+    <p class="muted" id="auth-msg" role="status" style="margin:0"></p>
+  </div>
+
+  <div id="signed-in" class="stack" hidden>
+    <div class="card" style="background:var(--grad);border:0;color:#fff">
+      <div class="row" style="justify-content:space-between">
+        <span style="font-weight:700"><span class="noha-coin" aria-hidden="true"></span> Noha Money</span>
+        <span class="by" style="color:rgba(255,255,255,.8)">by <b style="color:#fff">asanoha</b></span>
+      </div>
+      <div class="big-num" id="balance" style="margin:14px 0 6px">₹–</div>
+      <div id="balance-note" style="color:rgba(255,255,255,.88)"></div>
+    </div>
+
+    <div class="card stack">
+      <h2 style="font-size:24px;margin:0">Wearday Premium</h2>
+      <p class="muted" style="margin:0" id="premium-status">Checking…</p>
+      <div class="stack" id="buy"></div>
+      <p class="muted" style="margin:0;font-size:14px">Pays once, never auto-renews. Cashback covers up to 15%. <a href="/terms.html#premium">Terms</a> · <a href="/refunds.html">Refunds</a></p>
+    </div>
+
+    <div class="card stack">
+      <h2 style="font-size:24px;margin:0">Add money</h2>
+      <div class="chips" id="amounts" role="group" aria-label="Amount">
+        <button class="chip" aria-pressed="false" data-amt="100">₹100</button>
+        <button class="chip" aria-pressed="true" data-amt="250">₹250</button>
+        <button class="chip" aria-pressed="false" data-amt="500">₹500</button>
+        <button class="chip" aria-pressed="false" data-amt="1000">₹1,000</button>
+      </div>
+      <button class="btn lime" id="topup">Add ₹250 by UPI</button>
+      <p class="muted" style="margin:0;font-size:14px" id="topup-msg">Valid for 12 months. Unused money you add can be refunded to your UPI account.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:24px">History</h2>
+      <p class="muted" style="margin-top:0;font-size:14px">Everything from Wearday and the Asanoha shop, in one place.</p>
+      <div id="history"><p class="muted">Loading…</p></div>
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <span class="muted" id="who"></span>
+      <button class="btn ghost small" id="signout">Sign out</button>
+    </div>
+  </div>
+</div>
+<!--scripts
+<script type="module" src="/assets/account.js?v={{version}}"></script>
+scripts-->

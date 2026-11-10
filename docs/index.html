@@ -2,21 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wearday</title>
-<style>
-  :root { --bg:#F7F3EE; --text:#2A2420; --muted:#6f665e; --accent:#A8502F; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#161311; --text:#F3EDE7; --muted:#B5AAA0; --accent:#E8896A; } }
-  body { margin:0; background:var(--bg); color:var(--text); font:17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  main { max-width:620px; margin:0 auto; padding:56px 16px; }
-  h1 { font-size:34px; margin:0; } p { color:var(--muted); } a { color:var(--accent); }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wearday · your closet, but make it iconic</title>
+<meta name="description" content="Wearday is your digital closet. Snap your clothes, build fits, log your OOTD and get AI outfit ideas for today's weather. By Asanoha.">
+<link rel="canonical" href="https://wearday.asanoha.co.in/">
+<meta name="theme-color" content="#08070d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Wearday">
+<meta property="og:title" content="Wearday · your closet, but make it iconic">
+<meta property="og:description" content="Wearday is your digital closet. Snap your clothes, build fits, log your OOTD and get AI outfit ideas for today's weather. By Asanoha.">
+<meta property="og:url" content="https://wearday.asanoha.co.in/">
+<meta property="og:image" content="https://wearday.asanoha.co.in/assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/img/icon-48.png" sizes="48x48">
+<link rel="icon" href="/assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/img/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css?v=41455050">
+<script>try{var t=localStorage.getItem('wearday:theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+
 </head>
 <body>
-<main>
-  <h1>Wearday</h1>
-  <p>Your closet in your pocket: plan outfits, log what you wear and pack smarter. Your wardrobe stays on your phone.</p>
-  <p><a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms of use</a></p>
+<a class="sr" href="#main">Skip to content</a>
+<header class="wrap nav">
+  <div class="nav-in">
+    <a class="brand" href="/" aria-label="Wearday home"><img src="/assets/img/icon-192.png" alt="" width="30" height="30">wearday<small>by asanoha</small></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/#play">Play</a>
+      <a href="/#features">Features</a>
+      <a href="/#premium">Premium</a>
+      <a href="/support.html">Help</a>
+      <a class="btn small" href="/account.html">Account</a>
+    </nav>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Switch light or dark">◐</button>
+  </div>
+</header>
+<main id="main">
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <div class="stickers" aria-hidden="true">
+        <span class="sticker" style="left:0;top:10px;rotate:-8deg">👟 closet</span>
+        <span class="sticker lime" style="left:150px;top:0;rotate:6deg;animation-delay:-1s">✨ AI fits</span>
+        <span class="sticker" style="left:60px;top:62px;rotate:5deg;animation-delay:-2s">🧳 packing</span>
+        <span class="sticker" style="left:230px;top:58px;rotate:-5deg;animation-delay:-3s">📅 OOTD</span>
+      </div>
+      <h1>your closet,<span class="l2">but make it</span><span class="l3">iconic.</span></h1>
+      <p class="lead">Snap your clothes, build fits, log what you wore and get outfit ideas for today’s weather. All from what you already own.</p>
+      <div class="cta-row">
+        <a class="btn" href="#get">Get the app</a>
+        <a class="btn ghost" href="#play">🎰 Play Fit Slots</a>
+      </div>
+      <p class="hint" style="margin-top:14px">psst… the stickers are draggable</p>
+    </div>
+    <div class="phones" aria-label="Screens from the Wearday app">
+      <div class="phone p1" data-tilt><img src="/assets/img/screen-closet.webp" alt="Wearday closet screen with clothes and an AI outfit card" width="540" height="1161"></div>
+      <div class="phone p2" data-tilt><img src="/assets/img/screen-stats.webp" alt="Wearday style stats with streak and closet value" width="540" height="1161" loading="lazy"></div>
+    </div>
+  </section>
+
+  <section id="play">
+    <div class="game">
+      <div class="game-copy reveal">
+        <div class="kicker">Mini game</div>
+        <h2 class="section-title">Fit Slots 🎰</h2>
+        <p class="muted" style="font-size:19px">Spin a random fit and see how much drip it has. Tap a piece to lock it, then spin the rest until it hits.</p>
+        <ul>
+          <li>Match <b id="daily-theme">today’s theme</b> for a ×1.2 bonus</li>
+          <li>Score 85+ for confetti. Beat your best and keep a streak</li>
+          <li>Press <span class="kbd">Space</span> to spin, <span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span> to lock</li>
+        </ul>
+        <p class="muted">In the app, the same idea picks real outfits from <b>your</b> closet and the weather outside.</p>
+      </div>
+      <div class="machine reveal" id="slots">
+        <div class="machine-top">
+          <span class="pill">🔥 streak <b id="streak">0</b></span>
+          <span class="pill">🏆 best <b id="best">–</b></span>
+          <span class="pill lime" id="theme-pill">today: …</span>
+        </div>
+        <div class="reels" role="group" aria-label="Outfit reels. Tap a reel to lock it.">
+          <button class="reel" data-reel="0" aria-pressed="false"><span class="lock">tap to lock</span><span class="label"></span></button>
+          <button class="reel" data-reel="1" aria-pressed="false"><span class="lock">tap to lock</span><span class="label"></span></button>
+          <button class="reel" data-reel="2" aria-pressed="false"><span class="lock">tap to lock</span><span class="label"></span></button>
+        </div>
+        <div class="spin-row">
+          <button class="btn" id="spin">Spin the fit</button>
+          <button class="btn ghost" id="share" style="flex:0 0 auto" aria-label="Share your fit">↗</button>
+        </div>
+        <div class="result" aria-live="polite" id="result">
+          <div class="score-row"><h3 id="vibe">ready when you are</h3><span class="score" id="score">–</span></div>
+          <div class="meter"><span id="meter"></span></div>
+          <p class="muted" id="verdict" style="margin:0">Hit spin. No pressure. (Some pressure.)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="kicker reveal">What’s inside</div>
+    <h2 class="section-title reveal">Everything your closet <span class="grad-text">wishes it could do.</span></h2>
+    <div class="bento">
+      <div class="card b-grad b-wide b-tall reveal">
+        <span class="emoji">✨</span>
+        <div>
+          <h3>“what should I wear?” solved</h3>
+          <p>Pick an occasion and Wearday styles a fit from your own clothes, checked against today’s forecast. Don’t like it? Spin again.</p>
+        </div>
+      </div>
+      <div class="card reveal"><span class="emoji">📸</span><div><h3>Snap &amp; cut out</h3><p>Backgrounds disappear on your phone, and colour and type fill themselves in.</p></div></div>
+      <div class="card b-lime reveal"><span class="big-num">₹0</span><div><h3>to start</h3><p>The closet, outfits and diary are free forever.</p></div></div>
+      <div class="card reveal"><span class="emoji">🪩</span><div><h3>Build looks</h3><p>Drag pieces on a canvas, save them into collections, share them as a card.</p></div></div>
+      <div class="card reveal"><span class="emoji">📅</span><div><h3>OOTD diary</h3><p>Log what you wore with a mirror selfie and keep your streak alive.</p></div></div>
+      <div class="card b-wide reveal"><span class="emoji">🧳</span><div><h3>Pack in two minutes</h3><p>Trips get a packing list sized to the nights and the season, made from things you actually own. Tick them off as you go.</p></div></div>
+      <div class="card b-wide reveal"><span class="emoji">📊</span><div><h3>Know your style</h3><p>Most-worn pieces, cost per wear, your real colour palette, and the stuff you haven’t touched in six months.</p></div></div>
+      <div class="card b-full reveal"><span class="emoji">🔒</span><div><h3>Private by default</h3><p>Your wardrobe is visible only to you. No ads, no selling data, delete everything any time.</p></div></div>
+    </div>
+  </section>
+
+  <section id="premium">
+    <div class="kicker reveal">Premium</div>
+    <h2 class="section-title reveal">Free to love. <span class="grad-text">Premium to obsess.</span></h2>
+    <div class="plans">
+      <div class="card plan reveal">
+        <h3>Free</h3>
+        <div class="price">₹0</div>
+        <ul><li>Closet, outfits, diary, basic stats</li><li>1 AI outfit a day</li><li>Sync up to 50 items</li><li>1 trip, 2 collections</li></ul>
+      </div>
+      <div class="card plan hot reveal">
+        <h3>Premium · yearly</h3>
+        <div class="price">₹599 <small>/ year</small></div>
+        <ul><li>Unlimited AI outfits</li><li>Sync your whole wardrobe</li><li>Advanced stats &amp; declutter</li><li>Unlimited trips &amp; collections</li><li>7-day free trial in the app</li></ul>
+      </div>
+      <div class="card plan reveal">
+        <h3>Premium · monthly</h3>
+        <div class="price">₹99 <small>/ month</small></div>
+        <ul><li>Everything in Premium</li><li>Cancel any time</li></ul>
+        <p class="muted" style="margin-top:14px"><span class="noha-coin" aria-hidden="true"></span> Got <b>Noha Money</b> from Asanoha? Use it for Premium on your <a href="/account.html">account page</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="get">
+    <div class="card reveal" style="padding:clamp(24px,5vw,56px);text-align:center;background:var(--grad);border:0;color:#fff">
+      <h2 style="font-size:clamp(36px,6vw,64px)">your closet is waiting.</h2>
+      <p style="color:rgba(255,255,255,.9);font-size:19px;max-width:520px;margin:0 auto 24px">Wearday is rolling out on Android and iPhone. Drop your email on the account page and we’ll ping you the day it’s live.</p>
+      <div class="cta-row" style="justify-content:center">
+        <a class="btn lime" href="/account.html">Get early access</a>
+        <a class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.4)" href="/support.html">Questions?</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" style="max-width:820px">
+    <div class="kicker reveal">FAQ</div>
+    <h2 class="section-title reveal">Good questions.</h2>
+    <details><summary>Is Wearday free?</summary><p>Yes. The closet, outfits, diary and packing are free. Premium adds unlimited AI outfits, full sync, advanced stats and unlimited trips and collections.</p></details>
+    <details><summary>Who can see my clothes?</summary><p>Only you. Your wardrobe is stored privately in your account and synced between your phones. We don’t sell data or show ads. Read the <a href="/privacy.html">privacy policy</a>.</p></details>
+    <details><summary>Does the AI see my photos?</summary><p>No. Outfit suggestions use a text list of your clothes (type, colour, how often you wear them). Photos never leave your account.</p></details>
+    <details><summary>What is Noha Money?</summary><p>Noha Money is the wallet shared by Asanoha’s products. Cashback and money you add on Asanoha can also pay for Wearday Premium on the web, and every rupee shows up in one history. See the <a href="/terms.html#noha">terms</a>.</p></details>
+    <details><summary>How do I delete my account?</summary><p>In the app: Settings → Account → Delete account. Or follow the steps on the <a href="/delete-account.html">delete account</a> page.</p></details>
+  </section>
+</div>
+<canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
 </main>
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a class="brand" href="/"><img src="/assets/img/icon-192.png" alt="" width="30" height="30">wearday</a>
+      <p class="muted" style="max-width:340px;margin:12px 0 0">Your closet, but make it iconic. Snap clothes, build fits, log your OOTD.</p>
+      <p class="by" style="margin-top:18px">a <b>asanoha</b> product</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="/#play">Fit Slots</a>
+      <a href="/support.html">Help &amp; contact</a>
+      <a href="/account.html">Account &amp; Noha Money</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/refunds.html">Refunds &amp; cancellation</a>
+      <a href="/delete-account.html">Delete account</a>
+    </nav>
+  </div>
+  <div class="wrap muted" style="font-size:13px;margin-top:28px">© 2026 Asanoha Ayurveda LLP. Wearday™ and Noha Money are offered by Asanoha Ayurveda LLP, Bangalore, India.</div>
+</footer>
+<script src="/assets/site.js?v=41455050" defer></script>
+<script src="/assets/game.js?v=41455050" defer></script>
 </body>
 </html>

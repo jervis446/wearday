@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="https://wearday.asanoha.co.in/{{path}}">
+<meta name="theme-color" content="#08070d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Wearday">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="https://wearday.asanoha.co.in/{{path}}">
+<meta property="og:image" content="https://wearday.asanoha.co.in/assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/img/icon-48.png" sizes="48x48">
+<link rel="icon" href="/assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/img/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css?v={{version}}">
+<script>try{var t=localStorage.getItem('wearday:theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+{{head}}
+</head>
+<body>
+<a class="sr" href="#main">Skip to content</a>
+<header class="wrap nav">
+  <div class="nav-in">
+    <a class="brand" href="/" aria-label="Wearday home"><img src="/assets/img/icon-192.png" alt="" width="30" height="30">wearday<small>by asanoha</small></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/#play">Play</a>
+      <a href="/#features">Features</a>
+      <a href="/#premium">Premium</a>
+      <a href="/support.html">Help</a>
+      <a class="btn small" href="/account.html">Account</a>
+    </nav>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Switch light or dark">◐</button>
+  </div>
+</header>
+<main id="main">
+{{content}}
+</main>
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a class="brand" href="/"><img src="/assets/img/icon-192.png" alt="" width="30" height="30">wearday</a>
+      <p class="muted" style="max-width:340px;margin:12px 0 0">Your closet, but make it iconic. Snap clothes, build fits, log your OOTD.</p>
+      <p class="by" style="margin-top:18px">a <b>asanoha</b> product</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="/#play">Fit Slots</a>
+      <a href="/support.html">Help &amp; contact</a>
+      <a href="/account.html">Account &amp; Noha Money</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/refunds.html">Refunds &amp; cancellation</a>
+      <a href="/delete-account.html">Delete account</a>
+    </nav>
+  </div>
+  <div class="wrap muted" style="font-size:13px;margin-top:28px">© {{year}} Asanoha Ayurveda LLP. Wearday™ and Noha Money are offered by Asanoha Ayurveda LLP, Bangalore, India.</div>
+</footer>
+<script src="/assets/site.js?v={{version}}" defer></script>
+{{scripts}}
+</body>
+</html>
