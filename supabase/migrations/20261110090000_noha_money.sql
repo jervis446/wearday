@@ -9,7 +9,8 @@
 
 create table public.noha_transactions (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+  -- No foreign key: payment records are kept for 8 years even after the account is deleted.
+  user_id uuid not null,
   app text not null check (app in ('asanoha', 'wearday')),
   type text not null check (type in ('topup', 'cashback', 'bonus', 'refund', 'purchase', 'adjustment', 'expiry')),
   -- Positive = money in, negative = money out.
@@ -34,7 +35,7 @@ create table public.noha_lots (
   amount_paise integer not null check (amount_paise > 0),
   remaining_paise integer not null check (remaining_paise >= 0),
   expires_at timestamptz,
-  transaction_id uuid not null references public.noha_transactions (id),
+  transaction_id uuid not null references public.noha_transactions (id) on delete cascade,
   created_at timestamptz not null default now()
 );
 create index noha_lots_user on public.noha_lots (user_id) where remaining_paise > 0;
@@ -59,7 +60,8 @@ insert into public.noha_products (id, app, name, price_paise, max_bonus_pct, gra
 -- Top-ups paid through the UPI gateway (NohaPI). Written only by the server.
 create table public.noha_orders (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+  -- No foreign key, for the same reason as noha_transactions.
+  user_id uuid not null,
   app text not null check (app in ('asanoha', 'wearday')),
   amount_paise integer not null check (amount_paise > 0),
   status text not null default 'pending' check (status in ('pending', 'paid', 'failed', 'expired', 'cancelled')),

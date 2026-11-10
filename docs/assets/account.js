@@ -4,7 +4,35 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // Public client settings (safe to publish; the database protects every row by account).
 const SUPABASE_URL = 'https://fkhxgkscnkxtwnvecoyv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_kJghZQlNmpuy-NAGfUm4Dg_EHybViX9';
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: 'asanoha-auth' } });
+// Same sign-in as asanoha.co.in: one Asanoha account, kept in cookies on .asanoha.co.in so both sites share it.
+function sharedStorage() {
+  if (!/(^|\.)asanoha\.co\.in$/.test(location.hostname)) return undefined;
+  const CHUNK = 3500, YEAR = 31536000;
+  const read = (n) => { const m = document.cookie.match('(?:^|; )' + n.replace(/\./g, '\\.') + '=([^;]*)'); return m ? m[1] : null; };
+  const write = (n, v, age) => { document.cookie = n + '=' + v + '; Domain=.asanoha.co.in; Path=/; Max-Age=' + age + '; SameSite=Lax; Secure'; };
+  return {
+    getItem(k) {
+      const n = Number(read(k + '.n') || 0); if (!n) return null;
+      let s = ''; for (let i = 0; i < n; i++) { const p = read(k + '.' + i); if (p == null) return null; s += p; }
+      try { return decodeURIComponent(s); } catch (e) { return null; }
+    },
+    setItem(k, v) {
+      const enc = encodeURIComponent(v), old = Number(read(k + '.n') || 0), parts = [];
+      for (let i = 0; i < enc.length; i += CHUNK) parts.push(enc.slice(i, i + CHUNK));
+      parts.forEach((p, i) => write(k + '.' + i, p, YEAR));
+      write(k + '.n', String(parts.length), YEAR);
+      for (let i = parts.length; i < old; i++) write(k + '.' + i, '', 0);
+    },
+    removeItem(k) {
+      const old = Number(read(k + '.n') || 0);
+      for (let i = 0; i < old; i++) write(k + '.' + i, '', 0);
+      write(k + '.n', '', 0);
+    },
+  };
+}
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { flowType: 'pkce', persistSession: true, storageKey: 'asanoha-auth', storage: sharedStorage(), detectSessionInUrl: true },
+});
 
 const $ = (id) => document.getElementById(id);
 const inr = (p) => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: p % 100 ? 2 : 0, maximumFractionDigits: 2 });
@@ -39,6 +67,11 @@ $('code-form').addEventListener('submit', async (e) => {
 });
 $('restart').addEventListener('click', () => { $('email-form').hidden = false; $('code-form').hidden = true; $('auth-msg').textContent = ''; });
 $('signout').addEventListener('click', () => sb.auth.signOut());
+$('google').addEventListener('click', async () => {
+  $('auth-msg').textContent = '';
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/account.html', queryParams: { prompt: 'select_account' } } });
+  if (error) $('auth-msg').textContent = /not enabled|provider/i.test(error.message) ? 'Google sign-in opens soon. Use your email for now.' : error.message;
+});
 
 let amount = 250;
 $('amounts').addEventListener('click', (e) => {
