@@ -124,6 +124,18 @@ export function snapshot(db: Db, photos: Photos) {
   return out;
 }
 
+/**
+ * How many local changes the last sync hasn't pushed yet: new or edited records, plus
+ * records deleted locally. Used before sign-out to warn about changes that would be lost.
+ */
+export function pendingChanges(db: Db, state: SyncState, photos: Pick<Photos, 'nameOf'>): number {
+  const snap = snapshot(db, photos as Photos);
+  let n = 0;
+  for (const [k, r] of snap) if (state.synced[k] !== r.fp) n++;
+  for (const k of Object.keys(state.synced)) if (!snap.has(k)) n++;
+  return n;
+}
+
 // ---------- merge ----------
 
 /**
