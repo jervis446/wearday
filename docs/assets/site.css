@@ -39,6 +39,8 @@
 }
 
 * { box-sizing: border-box; }
+/* Layout classes like .stack set display, which would otherwise override the hidden attribute. */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
 body {

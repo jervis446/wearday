@@ -106,6 +106,17 @@ async function load(session) {
     sb.rpc('my_premium'),
     sb.from('noha_products').select('id,name,price_paise,max_bonus_pct').eq('app', 'wearday').order('price_paise'),
   ]);
+  // Before the wallet is set up on the server, show a calm placeholder instead of errors.
+  const ready = !bal.error && !tx.error;
+  for (const id of ['buy', 'topup', 'amounts']) $(id).hidden = !ready;
+  if (!ready) {
+    $('balance').textContent = '₹0';
+    $('balance-note').textContent = 'Noha Money opens soon. Your balance and cashback will show here.';
+    $('history').innerHTML = '<p class="muted">No activity yet.</p>';
+    $('premium-status').textContent = 'Unlimited AI fits, full sync, advanced stats, unlimited trips. Get it in the Wearday app.';
+    $('topup-msg').textContent = 'Adding money opens with Noha Money.';
+    return;
+  }
   const b = bal.data?.[0] ?? { total_paise: 0, bonus_paise: 0, cash_paise: 0, next_expiry: null };
   $('balance').textContent = inr(b.total_paise);
   $('balance-note').textContent = (b.bonus_paise ? inr(b.bonus_paise) + ' cashback · ' + inr(b.cash_paise) + ' added' : 'Cashback and money you add show up here.') +
@@ -146,5 +157,7 @@ async function buy(p, btn) {
 sb.auth.onAuthStateChange((_event, session) => {
   show(!!session);
   if (session) setTimeout(() => load(session).catch((e) => console.error(e)), 0);
+  // Back from Google sign-in: drop the one-time code from the address bar.
+  if (session && /[?&]code=/.test(location.search)) history.replaceState(null, '', location.pathname);
 });
 if (new URLSearchParams(location.search).get('paid')) $('topup-msg').textContent = 'Thanks! Your money appears here as soon as the payment is confirmed (usually under a minute).';
