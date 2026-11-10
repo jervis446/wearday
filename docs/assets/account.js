@@ -1,5 +1,4 @@
 /* Wearday web account: email sign-in, Noha Money wallet and history, Premium with Noha Money, UPI top-ups. */
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/+esm';
 
 // Public client settings (safe to publish; the database protects every row by account).
 const SUPABASE_URL = 'https://fkhxgkscnkxtwnvecoyv.supabase.co';
@@ -30,11 +29,26 @@ function sharedStorage() {
     },
   };
 }
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { flowType: 'pkce', persistSession: true, storageKey: 'asanoha-auth', storage: sharedStorage(), detectSessionInUrl: true },
-});
-
 const $ = (id) => document.getElementById(id);
+// The sign-in form shows straight away; the library loads behind it.
+show(false);
+const loadScript = (src) => new Promise((ok, bad) => {
+  const s = document.createElement('script');
+  s.src = src; s.onload = ok; s.onerror = () => bad(new Error('Could not load ' + src));
+  document.head.appendChild(s);
+});
+let sb;
+try {
+  // Plain prebuilt file (window.supabase), the same one asanoha.co.in uses.
+  await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js');
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { flowType: 'pkce', persistSession: true, storageKey: 'asanoha-auth', storage: sharedStorage(), detectSessionInUrl: true },
+  });
+} catch (e) {
+  $('auth-msg').textContent = 'Sign-in couldn’t load. Check your connection and refresh the page.';
+  throw e;
+}
+
 const inr = (p) => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: p % 100 ? 2 : 0, maximumFractionDigits: 2 });
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const APP = { asanoha: 'Asanoha', wearday: 'Wearday' };
@@ -100,8 +114,6 @@ $('google').addEventListener('click', redirectGoogle);
     console.warn('Google button unavailable, using redirect sign-in', e);
   }
 })();
-  if (error) $('auth-msg').textContent = /not enabled|provider/i.test(error.message) ? 'Google sign-in opens soon. Use your email for now.' : error.message;
-});
 
 let amount = 250;
 $('amounts').addEventListener('click', (e) => {

@@ -10,6 +10,10 @@
     });
   }
 
+  // Header button says "Sign in" until you're signed in to your Asanoha account (shared cookie on .asanoha.co.in).
+  var accBtn = document.querySelector('.nav-links a.btn[href="/account.html"]');
+  if (accBtn && !/(?:^|; )asanoha-auth\.n=/.test(document.cookie) && !localStorage.getItem('asanoha-auth')) accBtn.textContent = 'Sign in';
+
   var reveals = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
