@@ -13,6 +13,7 @@ import { shiftTime } from '../lib/reminderPlan';
 import { ensureNotificationPermission, remindersSupported } from '../lib/reminders';
 import { deviceCurrency, ThemePref, useSettings } from '../lib/settings';
 import { useAuth } from '../lib/auth';
+import { clearErrors, LoggedError, onErrors, recentErrors } from '../lib/diagnostics';
 import { usePremium } from '../lib/premium';
 import { openPaywall } from '../lib/usePaywall';
 import { useStore } from '../lib/store';
@@ -231,6 +232,8 @@ export default function SettingsScreen() {
         {busy ? <ActivityIndicator color={colors.accent} /> : null}
         {status ? <Text style={[ui.body, { color: status.error ? colors.danger : colors.text }]}>{status.text}</Text> : null}
       </Section>
+      <Diagnostics />
+
       <Text style={[ui.muted, { textAlign: 'center', marginTop: 8 }]}>
         Wearday {Constants.expoConfig?.version ?? ''}
         {Updates.isEnabled
@@ -240,5 +243,29 @@ export default function SettingsScreen() {
           : ''}
       </Text>
     </ScrollView>
+  );
+}
+
+/** Recent errors, so testers can report exactly what went wrong. Hidden when there are none. */
+function Diagnostics() {
+  const { colors, ui } = useTheme();
+  const [errors, setErrors] = useState<LoggedError[]>(recentErrors());
+  useEffect(() => {
+    const off = onErrors(setErrors);
+    return () => {
+      off();
+    };
+  }, []);
+  if (!errors.length) return null;
+  return (
+    <Section title="Diagnostics">
+      <Text style={ui.muted}>Recent errors. Screenshot this when reporting a problem.</Text>
+      {errors.slice(0, 8).map((e, i) => (
+        <Text key={i} selectable style={[ui.muted, { color: colors.danger }]}>
+          {new Date(e.at).toLocaleString()} · {e.where}: {e.message}
+        </Text>
+      ))}
+      <Button title="Clear" variant="secondary" onPress={clearErrors} />
+    </Section>
   );
 }

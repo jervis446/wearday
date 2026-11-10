@@ -5,6 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { logError } from './diagnostics';
 import { supabase } from './supabase';
 import { deleteAllPhotos } from './sync/supabaseRemote';
 
@@ -15,6 +16,8 @@ export type Provider = 'google' | 'apple';
 type AuthCtx = {
   session: Session | null;
   ready: boolean;
+  /** Set if checking for an existing sign-in failed (the sign-in screen still works). */
+  initError: string | null;
   sendCode: (email: string) => Promise<void>;
   verifyCode: (email: string, code: string) => Promise<void>;
   signInWith: (provider: Provider) => Promise<boolean>;
@@ -60,21 +63,52 @@ export async function completeOAuthFromUrl(url: string): Promise<boolean> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(!supabase);
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let done = false;
+    // Never leave the app waiting: if the stored-session check fails or hangs, carry on signed out.
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      setInitError('Checking your sign-in took too long. You can still sign in.');
+      logError('auth init', new Error('getSession timed out after 6s'));
       setReady(true);
-    });
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
+    }, 6000);
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setSession(data.session);
+      })
+      .catch((e) => {
+        logError('auth init', e);
+        setInitError((e as Error)?.message ?? 'Could not check your sign-in.');
+      })
+      .finally(() => {
+        done = true;
+        clearTimeout(timer);
+        setReady(true);
+      });
+    let unsubscribe = () => {};
+    try {
+      const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+      unsubscribe = () => data.subscription.unsubscribe();
+    } catch (e) {
+      logError('auth listener', e);
+    }
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
   const value = useMemo<AuthCtx>(
     () => ({
       session,
       ready,
+      initError,
       async sendCode(email) {
         // The email carries a sign-in link (opens the app via redirectUrl) and, if the template includes it, a 6-digit code.
         const { error } = await need().auth.signInWithOtp({
@@ -128,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await client.auth.signOut();
       },
     }),
-    [session, ready],
+    [session, ready, initError],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

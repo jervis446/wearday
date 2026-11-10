@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, Text, TextIn
 
 import { Button, Section } from '../components/ui';
 import { Provider, useAuth } from '../lib/auth';
+import { logError } from '../lib/diagnostics';
 import { supabaseConfigured } from '../lib/supabase';
 import { clearSyncState, useSync } from '../lib/sync/SyncProvider';
 import { useTheme } from '../lib/theme';
@@ -53,7 +54,7 @@ export default function AccountScreen() {
 
 function SignIn() {
   const { colors, ui } = useTheme();
-  const { sendCode, verifyCode, signInWith } = useAuth();
+  const { sendCode, verifyCode, signInWith, initError } = useAuth();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [codeSentTo, setCodeSentTo] = useState<string | null>(null);
@@ -71,7 +72,8 @@ function SignIn() {
     try {
       await fn();
     } catch (e) {
-      setError((e as Error).message);
+      logError(`sign-in (${what})`, e);
+      setError((e as Error)?.message || 'Something went wrong. Please try again.');
     } finally {
       setBusy(null);
     }
@@ -180,6 +182,7 @@ function SignIn() {
       ) : null}
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+      {initError && !error ? <Text style={ui.muted}>{initError}</Text> : null}
       <Text style={[ui.muted, { marginTop: 8 }]}>
         Your photos and wardrobe are stored privately in your account. Only you can see them.
       </Text>
