@@ -104,12 +104,23 @@ $('google').addEventListener('click', redirectGoogle);
         $('auth-msg').textContent = error ? 'Google sign-in didn’t work. Try again or use your email.' : '';
       },
     });
+    // Render Google's button next to ours, hidden. Swap only once Google's has really drawn,
+    // so the page never shows an empty gap (blocked by the browser, or site not allowed yet).
+    const ours = $('google');
     const slot = document.createElement('div');
     slot.id = 'gsi';
     slot.style.cssText = 'display:flex;justify-content:center;min-height:44px';
-    $('google').replaceWith(slot);
-    const width = Math.min(400, slot.parentElement.clientWidth - 2);
+    slot.hidden = true;
+    ours.after(slot);
+    const width = Math.min(400, Math.max(200, ours.offsetWidth || 320));
     google.accounts.id.renderButton(slot, { theme: matchMedia('(prefers-color-scheme: light)').matches ? 'outline' : 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', width });
+    const ready = () => { const f = slot.querySelector('iframe'); return f && f.offsetHeight > 20; };
+    for (let i = 0; i < 30 && !ready(); i++) {
+      slot.hidden = false; slot.style.position = 'absolute'; slot.style.visibility = 'hidden';
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    slot.style.position = ''; slot.style.visibility = '';
+    if (ready()) { ours.hidden = true; slot.hidden = false; } else { slot.remove(); }
   } catch (e) {
     console.warn('Google button unavailable, using redirect sign-in', e);
   }
