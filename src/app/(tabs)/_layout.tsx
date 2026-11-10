@@ -1,42 +1,51 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Tabs } from 'expo-router';
-import { ComponentProps } from 'react';
-import { ColorValue, Pressable } from 'react-native';
+import { Platform, View } from 'react-native';
 
-import { useTheme } from '../../lib/theme';
-
-type IconName = ComponentProps<typeof Ionicons>['name'];
-
-const icon = (name: IconName, active: IconName) =>
-  function TabIcon({ color, focused, size }: { color: ColorValue; focused: boolean; size: number }) {
-    return <Ionicons name={focused ? active : name} size={size} color={String(color)} />;
-  };
+import { GlassTabBar } from '../../components/TabBar';
+import { Backdrop, Bouncy } from '../../components/ui';
+import { font, useTheme } from '../../lib/theme';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
-        headerShadowVisible: false,
-        headerTitleStyle: { fontWeight: '800', fontSize: 22, color: colors.text },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
-        tabBarLabelStyle: { fontWeight: '600' },
-        sceneStyle: { backgroundColor: colors.bg },
-        headerRight: () => (
-          <Pressable onPress={() => router.push('/settings')} hitSlop={12} style={{ marginRight: 16 }} accessibilityLabel="Settings">
-            <Ionicons name="settings-outline" size={22} color={colors.text} />
-          </Pressable>
-        ),
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: 'Wardrobe', headerTitle: 'Wearday', tabBarIcon: icon('shirt-outline', 'shirt') }} />
-      <Tabs.Screen name="outfits" options={{ title: 'Outfits', tabBarIcon: icon('layers-outline', 'layers') }} />
-      <Tabs.Screen name="calendar" options={{ title: 'Calendar', tabBarIcon: icon('calendar-outline', 'calendar') }} />
-      <Tabs.Screen name="trips" options={{ title: 'Trips', tabBarIcon: icon('airplane-outline', 'airplane') }} />
-      <Tabs.Screen name="stats" options={{ title: 'Stats', tabBarIcon: icon('stats-chart-outline', 'stats-chart') }} />
-    </Tabs>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Backdrop />
+      <Tabs
+        tabBar={(props) => <GlassTabBar {...props} />}
+        screenOptions={{
+          headerStyle: { backgroundColor: 'transparent', height: Platform.OS === 'web' ? 76 : undefined },
+          headerShadowVisible: false,
+          headerTitleAlign: 'left',
+          headerTitleStyle: { fontFamily: font.display, fontSize: 30, color: colors.text, letterSpacing: -1 },
+          sceneStyle: { backgroundColor: 'transparent' },
+          headerRight: () => (
+            <Bouncy
+              onPress={() => router.push('/settings')}
+              accessibilityLabel="Settings"
+              style={{
+                marginRight: 16,
+                width: 42,
+                height: 42,
+                borderRadius: 21,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.glass,
+                borderWidth: 1,
+                borderColor: colors.glassBorder,
+              }}
+            >
+              <Ionicons name="person-circle-outline" size={24} color={colors.text} />
+            </Bouncy>
+          ),
+        }}
+      >
+        <Tabs.Screen name="index" options={{ title: 'Closet', headerTitle: 'wearday' }} />
+        <Tabs.Screen name="outfits" options={{ title: 'Looks', headerTitle: 'Looks' }} />
+        <Tabs.Screen name="calendar" options={{ title: 'Diary', headerTitle: 'OOTD diary' }} />
+        <Tabs.Screen name="trips" options={{ title: 'Trips' }} />
+        <Tabs.Screen name="stats" options={{ title: 'Stats', headerTitle: 'Your style' }} />
+      </Tabs>
+    </View>
   );
 }

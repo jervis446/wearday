@@ -1,14 +1,15 @@
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { ItemThumb } from '../../components/ui';
+import { Button, ItemThumb } from '../../components/ui';
 import { colorBreakdown, declutterCandidates, logStreak, monthlySpend } from '../../lib/insights';
 import { formatDay } from '../../lib/packing';
 import { usePremium } from '../../lib/premium';
 import { useMoney } from '../../lib/settings';
 import { useStore, useWearCounts } from '../../lib/store';
-import { useTheme } from '../../lib/theme';
+import { font, TAB_BAR_SPACE, useTheme } from '../../lib/theme';
 import { openPaywall } from '../../lib/usePaywall';
 import { CATEGORIES, inCloset, Item, todayKey } from '../../lib/types';
 
@@ -51,16 +52,29 @@ export default function Stats() {
   const maxColor = Math.max(1, ...s.colors.map((x) => x.count));
 
   return (
-    <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 12, maxWidth: 700, width: '100%', alignSelf: 'center' }]}>
-      <View style={[ui.row, { gap: 10 }]}>
-        <Tile label="Items" value={String(s.owned.length)} />
-        <Tile label="Outfits" value={String(outfits.length)} />
-        <Tile label="Closet value" value={money.format(s.value, true)} />
+    <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 12, paddingTop: 4, paddingBottom: TAB_BAR_SPACE, maxWidth: 700, width: '100%', alignSelf: 'center' }]}>
+      {/* Bento grid */}
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <LinearGradient colors={colors.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1.3, borderRadius: 26, padding: 18, justifyContent: 'space-between', minHeight: 176 }}>
+          <Text style={{ fontFamily: font.bodyBold, fontSize: 12, letterSpacing: 1.2, color: 'rgba(255,255,255,0.8)' }}>YOUR CLOSET</Text>
+          <View>
+            <Text style={{ fontFamily: font.display, fontSize: 64, lineHeight: 66, color: '#FFFFFF', letterSpacing: -3 }}>{s.owned.length}</Text>
+            <Text style={{ fontFamily: font.bodyMedium, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+              pieces · {outfits.length} outfit{outfits.length === 1 ? '' : 's'}
+            </Text>
+          </View>
+        </LinearGradient>
+        <View style={{ flex: 1, gap: 10 }}>
+          <View style={{ flex: 1, borderRadius: 26, padding: 16, backgroundColor: colors.lime, justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: font.bodyBold, fontSize: 12, color: colors.onLime, opacity: 0.7 }}>STREAK</Text>
+            <Text style={{ fontFamily: font.display, fontSize: 30, color: colors.onLime, letterSpacing: -1 }}>{s.streak ? `${s.streak} 🔥` : '0 days'}</Text>
+          </View>
+          <Tile label="worn at least once" value={`${s.utilisation}%`} />
+        </View>
       </View>
       <View style={[ui.row, { gap: 10 }]}>
-        <Tile label="Items worn" value={`${s.utilisation}%`} />
-        <Tile label="Day streak" value={s.streak ? `${s.streak} 🔥` : '0'} />
-        <Tile label="Never worn" value={String(s.neverWorn.length)} />
+        <Tile label="closet value" value={money.format(s.value, true)} />
+        <Tile label="never worn" value={String(s.neverWorn.length)} />
       </View>
 
       <Section title="By category">
@@ -125,8 +139,10 @@ function nowMs() {
 function Tile({ label, value }: { label: string; value: string }) {
   const { ui } = useTheme();
   return (
-    <View style={[ui.card, { flex: 1, padding: 12 }]}>
-      <Text style={ui.h2}>{value}</Text>
+    <View style={[ui.card, { flex: 1, padding: 16, borderRadius: 26, gap: 2 }]}>
+      <Text style={[ui.h1, { fontSize: 26, lineHeight: 30 }]} numberOfLines={1} adjustsFontSizeToFit>
+        {value}
+      </Text>
       <Text style={ui.muted}>{label}</Text>
     </View>
   );
@@ -156,15 +172,12 @@ function HBar({ label, value, max, swatch }: { label: string; value: number; max
           {label}
         </Text>
       </View>
-      <View style={{ flex: 1, height: 10, backgroundColor: colors.chip, borderRadius: 2 }}>
-        <View
-          style={{
-            width: `${(value / max) * 100}%`,
-            height: 10,
-            backgroundColor: colors.accent,
-            borderTopRightRadius: 4,
-            borderBottomRightRadius: 4,
-          }}
+      <View style={{ flex: 1, height: 12, backgroundColor: colors.chip, borderRadius: 6, overflow: 'hidden' }}>
+        <LinearGradient
+          colors={colors.grad}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ width: `${(value / max) * 100}%`, height: 12, borderRadius: 6 }}
         />
       </View>
       <Text style={[ui.muted, { width: 28, textAlign: 'right' }]}>{value}</Text>
@@ -206,10 +219,9 @@ function MonthlySpend({ months, format }: { months: Month[]; format: (n: number,
                     style={{
                       width: '70%',
                       height: h,
-                      backgroundColor: colors.accent,
-                      opacity: active ? 1 : 0.55,
-                      borderTopLeftRadius: 4,
-                      borderTopRightRadius: 4,
+                      backgroundColor: active ? colors.pink : colors.accent,
+                      opacity: active ? 1 : 0.5,
+                      borderRadius: 8,
                     }}
                   />
                   <View style={{ height: 1, alignSelf: 'stretch', backgroundColor: colors.border }} />
@@ -231,8 +243,8 @@ function LockedInsights() {
   const { colors, ui } = useTheme();
   const rows = ['Colour palette', 'Spending by month', 'Declutter suggestions', 'Best cost per wear'];
   return (
-    <View style={[ui.card, { padding: 16, gap: 10, borderColor: colors.accentSoft, borderWidth: 2 }]}>
-      <Text style={ui.h2}>✨ Advanced insights</Text>
+    <View style={[ui.card, { padding: 18, gap: 12, borderColor: colors.accent, borderWidth: 1.5 }]}>
+      <Text style={ui.h2}>Advanced insights ✨</Text>
       {rows.map((r) => (
         <View key={r} style={[ui.row, { gap: 10 }]}>
           <Text style={{ color: colors.accent }}>🔒</Text>
@@ -240,13 +252,7 @@ function LockedInsights() {
         </View>
       ))}
       <Text style={ui.muted}>See which colours you wear, what you spend each month, and what to let go of.</Text>
-      <Pressable
-        onPress={() => openPaywall('stats')}
-        style={{ backgroundColor: colors.accent, borderRadius: 12, paddingVertical: 12, alignItems: 'center' }}
-        accessibilityRole="button"
-      >
-        <Text style={{ color: colors.accentText, fontWeight: '600', fontSize: 15 }}>Unlock with Premium</Text>
-      </Pressable>
+      <Button title="Unlock with Premium" onPress={() => openPaywall('stats')} />
     </View>
   );
 }
@@ -254,8 +260,8 @@ function LockedInsights() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const { ui } = useTheme();
   return (
-    <View style={[ui.card, { padding: 14 }]}>
-      <Text style={[ui.h2, { marginBottom: 10 }]}>{title}</Text>
+    <View style={[ui.card, { padding: 18 }]}>
+      <Text style={[ui.h2, { marginBottom: 12 }]}>{title}</Text>
       {children}
     </View>
   );

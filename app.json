@@ -14,9 +14,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#C2603E",
+        "backgroundColor": "#7C4DFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundImage": "./assets/android-icon-background.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.wearday.app",
@@ -48,7 +49,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Wearday uses your approximate location to check today’s weather for outfit suggestions.",
+          "locationWhenInUsePermission": "Wearday uses your approximate location to check today\u2019s weather for outfit suggestions.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false,
@@ -65,13 +66,15 @@
         }
       ],
       "expo-web-browser",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-font",
+      "expo-splash-screen"
     ],
     "scheme": "wearday",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F7F3EE"
+      "backgroundColor": "#08070D"
     },
     "extra": {
       "router": {

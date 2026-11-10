@@ -7,7 +7,7 @@ import { Button, Empty } from '../../components/ui';
 import { track } from '../../lib/analytics';
 import { shareViewAsImage } from '../../lib/shareImage';
 import { useStore } from '../../lib/store';
-import { light, useTheme } from '../../lib/theme';
+import { font, light, useTheme } from '../../lib/theme';
 
 /** Preview of the outfit card, then share it as an image. The card always uses the light brand look. */
 export default function ShareOutfit() {
@@ -50,14 +50,14 @@ export default function ShareOutfit() {
         <OutfitCanvas pieces={outfit.pieces} items={items} size={canvas} />
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: light.text }} numberOfLines={2}>
+            <Text style={{ fontSize: 20, fontFamily: font.display, color: light.text }} numberOfLines={2}>
               {outfit.name}
             </Text>
             <Text style={{ fontSize: 13, color: light.muted }} numberOfLines={2}>
               {pieces.map((i) => (i!.brand ? `${i!.brand} ${i!.name}` : i!.name)).join(' · ')}
             </Text>
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: light.accent }}>Wearday</Text>
+          <Text style={{ fontSize: 13, fontFamily: font.display, color: light.accent }}>Wearday</Text>
         </View>
       </View>
       <Button title={busy ? 'Preparing…' : 'Share image'} onPress={busy ? () => {} : share} style={{ alignSelf: 'stretch', maxWidth: 400, width: '100%' }} />

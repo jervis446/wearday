@@ -10,7 +10,7 @@ import { usePremium } from '../../lib/premium';
 import { openPaywall } from '../../lib/usePaywall';
 import { addDays, EXTRA_SUGGESTIONS, formatDay, packProgress, suggestPacking, tripEnd } from '../../lib/packing';
 import { useStore, useWearCounts } from '../../lib/store';
-import { useTheme } from '../../lib/theme';
+import { font, useTheme } from '../../lib/theme';
 import { CATEGORIES, inCloset, Trip, todayKey, uid } from '../../lib/types';
 
 type Draft = Pick<Trip, 'name' | 'destination' | 'start' | 'nights'>;
@@ -102,7 +102,7 @@ function Stepper({ label, onMinus, onPlus }: { label: string; onMinus: () => voi
   return (
     <View style={[ui.row, { gap: 10 }]}>
       <Button title="−" variant="secondary" onPress={onMinus} />
-      <Text style={[ui.body, { flex: 1, textAlign: 'center', fontWeight: '600' }]}>{label}</Text>
+      <Text style={[ui.body, { flex: 1, textAlign: 'center', fontFamily: font.bodyBold }]}>{label}</Text>
       <Button title="+" variant="secondary" onPress={onPlus} />
     </View>
   );
@@ -320,7 +320,7 @@ function CheckRow({
             justifyContent: 'center',
           }}
         >
-          {checked ? <Text style={{ color: colors.accentText, fontSize: 13, fontWeight: '800' }}>✓</Text> : null}
+          {checked ? <Text style={{ color: colors.accentText, fontSize: 13, fontFamily: font.display }}>✓</Text> : null}
         </View>
         {left}
         <Text

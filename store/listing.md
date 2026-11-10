@@ -50,7 +50,7 @@ Wearday turns your closet into an app. Photograph your clothes and Wearday cuts 
 Unlimited AI outfit ideas, sync for your whole wardrobe, advanced stats, and unlimited trips and collections. Monthly or yearly, with a free trial on yearly. Free features stay free.
 
 **Private by design**
-Use it without an account, or sign in with Apple, Google or email to back up and sync between your phones. No ads, no selling your data, and you can delete your account in the app at any time.
+Sign in with Apple, Google or email and your wardrobe is backed up and synced between your phones. No ads, no selling your data, and you can delete your account in the app at any time.
 
 ## In-app purchases
 
@@ -80,8 +80,8 @@ Data types, all **collected, not shared**:
 | Data type | Required or optional | Processed ephemerally? | Purposes |
 |---|---|---|---|
 | Financial info → **Purchase history** | Optional (only if you subscribe) | No | App functionality (unlocking Premium) |
-| Personal info → **Email address** | Optional (only if you create an account) | No | Account management |
-| Personal info → **User IDs** | Optional | No | Account management, Analytics |
+| Personal info → **Email address** | Required (an account is needed to use the app) | No | Account management |
+| Personal info → **User IDs** | Required | No | Account management, Analytics |
 | Photos and videos → **Photos** | Optional (synced only when signed in) | No | App functionality |
 | Location → **Approximate location** | Optional | Yes | App functionality (weather for suggestions) |
 | App activity → **App interactions** | Optional (users can turn it off) | No | Analytics |
@@ -91,7 +91,7 @@ Data types, all **collected, not shared**:
 ## Apple: App Privacy ("nutrition label")
 
 - **Data used to track you:** None. PostHog is first-party analytics and is not used for advertising or combined with other companies' data, so no App Tracking Transparency prompt is needed.
-- **Data linked to you** (when signed in):
+- **Data linked to you:**
   - Contact Info → Email Address: App Functionality
   - User Content → Photos or Videos: App Functionality
   - User Content → Other User Content: App Functionality
@@ -101,6 +101,7 @@ Data types, all **collected, not shared**:
 - **Data not linked to you:**
   - Location → Coarse Location: App Functionality
 - **Sign in with Apple:** required by Apple because the app also offers Google sign-in. It's already built in.
+- **Login required (guideline 5.1.1(v)):** the app asks people to sign in before they can use it. Apple sometimes rejects apps that require an account for features that don't need one. If that happens, explain in App Review notes that the account stores the user's wardrobe and photos and syncs them across devices, and give the reviewer a demo login (an email address whose sign-in code you can read). Account deletion is in Settings → Account.
 
 ## Screenshots
 

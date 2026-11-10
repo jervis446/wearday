@@ -7,7 +7,7 @@ import { Button, ChipRow, confirm, Empty } from '../../components/ui';
 import { canAddCollection } from '../../lib/plans';
 import { usePremium } from '../../lib/premium';
 import { useStore } from '../../lib/store';
-import { useTheme } from '../../lib/theme';
+import { font, TAB_BAR_SPACE, useTheme } from '../../lib/theme';
 import { openPaywall } from '../../lib/usePaywall';
 
 const ALL = 'All outfits';
@@ -18,7 +18,7 @@ export default function Outfits() {
   const { outfits, items, logs, collections, saveCollection, deleteCollection } = useStore();
   const { width } = useWindowDimensions();
   const { isPremium } = usePremium();
-  const size = Math.floor((Math.min(width, 700) - 16 * 2 - 12) / 2);
+  const size = Math.floor((Math.min(width, 700) - 20 * 2 - 12) / 2);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState<{ mode: 'new' | 'rename'; text: string } | null>(null);
 
@@ -47,13 +47,13 @@ export default function Outfits() {
         data={shown}
         numColumns={2}
         keyExtractor={(o) => o.id}
-        contentContainerStyle={{ padding: 16, gap: 12, maxWidth: 700, width: '100%', alignSelf: 'center' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: TAB_BAR_SPACE, gap: 14, maxWidth: 700, width: '100%', alignSelf: 'center' }}
         columnWrapperStyle={{ gap: 12 }}
         ListHeaderComponent={
           <View style={{ gap: 10 }}>
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <Button title="✨ Suggest" onPress={() => router.push('/suggest')} style={{ flex: 1 }} />
-              <Button title="+ Create" variant="secondary" onPress={() => router.push('/outfit/new')} style={{ flex: 1 }} />
+              <Button title="Style me ✨" onPress={() => router.push('/suggest')} style={{ flex: 1 }} />
+              <Button title="+ Build" variant="secondary" onPress={() => router.push('/outfit/new')} style={{ flex: 1 }} />
             </View>
             <ChipRow
               options={[ALL, ...byName.map((c) => c.name), NEW]}
@@ -107,15 +107,15 @@ export default function Outfits() {
           selected ? (
             <Empty title="This collection is empty" hint="Open an outfit and tap this collection’s name to add it." />
           ) : (
-            <Empty title="No outfits yet" hint="Combine pieces from your wardrobe on a canvas, or tap Suggest for an idea." />
+            <Empty emoji="🪩" title="No outfits yet" hint="Combine pieces from your wardrobe on a canvas, or tap Suggest for an idea." />
           )
         }
         renderItem={({ item: o }) => (
           <Pressable onPress={() => router.push(`/outfit/${o.id}`)} style={{ width: size }}>
-            <View pointerEvents="none">
+            <View pointerEvents="none" style={{ borderRadius: 24, overflow: 'hidden' }}>
               <OutfitCanvas pieces={o.pieces} items={items} size={size} />
             </View>
-            <Text numberOfLines={1} style={[ui.body, { marginTop: 6, fontWeight: '600' }]}>
+            <Text numberOfLines={1} style={[ui.body, { marginTop: 8, fontFamily: font.bodyBold }]}>
               {o.name}
             </Text>
             <Text style={ui.muted}>

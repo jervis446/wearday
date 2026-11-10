@@ -1,11 +1,12 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
 import { OutfitCanvas } from '../../components/OutfitCanvas';
-import { Button, ItemThumb } from '../../components/ui';
+import { Bouncy, Button, ItemThumb } from '../../components/ui';
 import { useStore } from '../../lib/store';
-import { useTheme } from '../../lib/theme';
+import { font, TAB_BAR_SPACE, useTheme } from '../../lib/theme';
 import { todayKey, WearLog } from '../../lib/types';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -20,7 +21,7 @@ export default function Calendar() {
   });
   const [selected, setSelected] = useState(todayKey());
 
-  const cell = Math.floor((Math.min(width, 600) - 32) / 7);
+  const cell = Math.floor((Math.min(width, 600) - 40) / 7);
   const byDate = useMemo(() => Object.fromEntries(logs.map((l) => [l.date, l])) as Record<string, WearLog>, [logs]);
 
   const days = useMemo(() => {
@@ -44,15 +45,21 @@ export default function Calendar() {
   };
 
   return (
-    <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
-      <View style={[ui.row, { justifyContent: 'space-between', marginBottom: 12 }]}>
-        <Pressable onPress={() => shift(-1)} hitSlop={12}>
-          <Text style={ui.h2}>‹</Text>
-        </Pressable>
+    <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { paddingTop: 4, paddingBottom: TAB_BAR_SPACE, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
+      <View style={[ui.row, { justifyContent: 'space-between', marginBottom: 14 }]}>
         <Text style={ui.h2}>{month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</Text>
-        <Pressable onPress={() => shift(1)} hitSlop={12}>
-          <Text style={ui.h2}>›</Text>
-        </Pressable>
+        <View style={[ui.row, { gap: 8 }]}>
+          {(['chevron-back', 'chevron-forward'] as const).map((name, i) => (
+            <Bouncy
+              key={name}
+              onPress={() => shift(i ? 1 : -1)}
+              accessibilityLabel={i ? 'Next month' : 'Previous month'}
+              style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.glass, borderWidth: 1, borderColor: colors.glassBorder }}
+            >
+              <Ionicons name={name} size={18} color={colors.text} />
+            </Bouncy>
+          ))}
+        </View>
       </View>
 
       <View style={{ flexDirection: 'row' }}>
@@ -74,15 +81,15 @@ export default function Calendar() {
               <View
                 style={{
                   flex: 1,
-                  borderRadius: 8,
+                  borderRadius: 12,
                   overflow: 'hidden',
-                  backgroundColor: l ? colors.card : 'transparent',
+                  backgroundColor: l ? colors.card : colors.glass,
                   borderWidth: isSel ? 2 : 1,
-                  borderColor: isSel ? colors.accent : key === todayKey() ? colors.muted : colors.border,
+                  borderColor: isSel ? colors.pink : key === todayKey() ? colors.lime : colors.glassBorder,
                 }}
               >
                 {img ? <Image source={{ uri: img }} style={{ flex: 1 }} resizeMode="cover" /> : null}
-                <Text style={{ position: 'absolute', top: 2, left: 4, fontSize: 11, fontWeight: '600', color: colors.text }}>
+                <Text style={{ position: 'absolute', top: 3, left: 5, fontSize: 11, fontFamily: font.bodyBold, color: img ? '#FFFFFF' : colors.text, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: img ? 3 : 0 }}>
                   {d.getDate()}
                 </Text>
               </View>

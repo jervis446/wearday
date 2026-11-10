@@ -8,7 +8,7 @@ import { Button } from '../components/ui';
 import { track } from '../lib/analytics';
 import { FEATURE_REASON, type Feature, parsePeriod, PREMIUM_BENEFITS, trialLabel, yearlySavings } from '../lib/plans';
 import { devPremiumAllowed, type Plan, purchasesConfigured, usePremium } from '../lib/premium';
-import { useTheme } from '../lib/theme';
+import { font, useTheme } from '../lib/theme';
 
 const PRIVACY_URL = 'https://jervis446.github.io/wearday/privacy.html';
 const TERMS_URL =
@@ -90,7 +90,10 @@ export default function Paywall() {
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 14, paddingBottom: 40, maxWidth: 520, width: '100%', alignSelf: 'center' }]}>
       <Stack.Screen options={{ title: '' }} />
       <View style={{ gap: 6 }}>
-        <Text style={[ui.h1, { fontSize: 30 }]}>Wearday Premium</Text>
+        <Text style={[ui.h1, { fontSize: 40, lineHeight: 42 }]}>
+          wearday{'\n'}
+          <Text style={{ color: colors.pink }}>premium ✨</Text>
+        </Text>
         <Text style={[ui.body, { color: colors.muted }]}>{feature && FEATURE_REASON[feature] ? FEATURE_REASON[feature] : 'Get more out of your wardrobe.'}</Text>
       </View>
 
@@ -167,7 +170,7 @@ function Benefits() {
             <Ionicons name={b.icon as ComponentProps<typeof Ionicons>['name']} size={18} color={colors.accent} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[ui.body, { fontWeight: '700' }]}>{b.title}</Text>
+            <Text style={[ui.body, { fontFamily: font.bodyBold }]}>{b.title}</Text>
             <Text style={ui.muted}>{b.body}</Text>
           </View>
         </View>
@@ -204,7 +207,7 @@ function PlanCard({ plan, selected, onPress, badge }: { plan: Plan; selected: bo
         {selected ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.accent }} /> : null}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[ui.body, { fontWeight: '700' }]}>{plan.id === 'yearly' ? 'Yearly' : 'Monthly'}</Text>
+        <Text style={[ui.body, { fontFamily: font.bodyBold }]}>{plan.id === 'yearly' ? 'Yearly' : 'Monthly'}</Text>
         <Text style={ui.muted}>
           {plan.id === 'yearly' ? (perMonth ? `${perMonth}/month, billed yearly` : 'Billed yearly') : 'Billed monthly'}
           {trial ? ` · ${trial}` : ''}
@@ -213,10 +216,10 @@ function PlanCard({ plan, selected, onPress, badge }: { plan: Plan; selected: bo
       <View style={{ alignItems: 'flex-end', gap: 4 }}>
         {badge ? (
           <View style={{ backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-            <Text style={{ color: colors.accentText, fontSize: 11, fontWeight: '700' }}>{badge}</Text>
+            <Text style={{ color: colors.accentText, fontSize: 11, fontFamily: font.bodyBold }}>{badge}</Text>
           </View>
         ) : null}
-        <Text style={[ui.body, { fontWeight: '700' }]}>{plan.priceString}</Text>
+        <Text style={[ui.body, { fontFamily: font.bodyBold }]}>{plan.priceString}</Text>
       </View>
     </Pressable>
   );

@@ -17,7 +17,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Auto-tagging**: after you take a photo, the app fills in the colour, and in a real build the category too (Google ML Kit, on the phone). Nothing is uploaded.
 - **Suggest an outfit**: an AI stylist that picks from your own closet using the occasion, today's weather and what you haven't worn lately. It runs on a free Cloudflare Worker (see [`worker/`](worker/README.md)). Without the Worker, it falls back to a simple offline picker.
 - **Background removal**: cuts clothes out of photos on the phone (Google ML Kit on Android, Apple Vision on iOS 17+), automatically or with one tap, and you can switch back to the original. Not available in Expo Go or the browser.
-- **Accounts and sync** (optional): sign in with Apple, Google or an emailed code. The wardrobe and photos sync automatically between phones through Supabase, and still work offline. You can delete your account in the app.
+- **Accounts and sync**: sign-in is required (the welcome screen is the first thing people see); sign in with Apple, Google or an emailed code. The wardrobe and photos sync automatically between phones through Supabase, and still work offline. You can delete your account in the app.
 - **Wearday Premium**: monthly or yearly subscription via Google Play and the App Store (RevenueCat). The free plan includes 1 AI suggestion a day, sync for up to 50 items, 1 trip, 2 collections and basic stats. Premium makes all of these unlimited and adds advanced stats. The sync limit is also enforced by the database.
 - **Usage analytics** (optional): privacy-friendly PostHog with a switch in Settings; no session replay, no personal data in events.
 - **Backup and restore**: Settings → Export backup saves everything (data, settings and photos) to one `.zip` file you can keep in Google Drive or iCloud. Restore brings it all back, for example on a new phone.
@@ -26,7 +26,7 @@ Built from scratch: no code or assets were taken from the original app.
 - **Dark mode**: follows the phone, or set Light or Dark in Settings.
 - **Item detail**: times worn, cost per wear, last worn date, and how many outfits use the item.
 
-Without an account, all data is stored on the device (AsyncStorage). When signed in, it also syncs to your private Supabase account. Photos are resized to at most 1200 px and kept in the app's documents folder; unused photos are cleaned up automatically. In the browser version, photos are stored as embedded data.
+All data is stored on the device (AsyncStorage) and also syncs to your private Supabase account. Photos are resized to at most 1200 px and kept in the app's documents folder; unused photos are cleaned up automatically. In the browser version, photos are stored as embedded data.
 
 ## Run
 

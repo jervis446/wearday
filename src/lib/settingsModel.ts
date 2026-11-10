@@ -16,7 +16,7 @@ export type Settings = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  theme: 'system',
+  theme: 'dark',
   currency: 'auto',
   reminder: { enabled: false, hour: 8, minute: 30 },
   autoRemoveBackground: true,

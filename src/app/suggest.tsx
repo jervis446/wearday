@@ -12,7 +12,7 @@ import { usePremium } from '../lib/premium';
 import { autoLayout } from '../lib/outfitLayout';
 import { useStore, useWearCounts } from '../lib/store';
 import { aiConfigured, Suggestion, suggestOutfit } from '../lib/suggest';
-import { useTheme } from '../lib/theme';
+import { font, useTheme } from '../lib/theme';
 import { openPaywall } from '../lib/usePaywall';
 import { Item } from '../lib/types';
 
@@ -104,7 +104,7 @@ export default function Suggest() {
       ) : null}
       {limitHit ? (
         <View style={[ui.card, { padding: 14, gap: 10, backgroundColor: colors.accentSoft, borderColor: colors.accentSoft }]}>
-          <Text style={[ui.body, { fontWeight: '700' }]}>You’ve used today’s free AI suggestion</Text>
+          <Text style={[ui.body, { fontFamily: font.bodyBold }]}>You’ve used today’s free AI suggestion</Text>
           <Text style={ui.muted}>Your free AI suggestion comes back tomorrow. Go Premium for unlimited AI ideas, or get a basic suggestion now (always free).</Text>
           <Button title="✨ Go Premium" onPress={() => openPaywall('ai')} />
           <Button title="Get a basic suggestion" variant="secondary" onPress={() => run(true)} />

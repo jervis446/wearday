@@ -29,7 +29,7 @@ const Ctx = createContext<AuthCtx | null>(null);
 
 /** Where OAuth providers send the user back: wearday://auth-callback (or the web page). */
 export const redirectUrl = () =>
-  Platform.OS === 'web' ? `${globalThis.location?.origin ?? ''}/account` : Linking.createURL('auth-callback');
+  Platform.OS === 'web' ? `${globalThis.location?.origin ?? ''}/welcome` : Linking.createURL('auth-callback');
 
 const need = () => {
   if (!supabase) throw new Error('Accounts aren’t set up in this build.');

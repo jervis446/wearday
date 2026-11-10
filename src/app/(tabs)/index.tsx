@@ -1,10 +1,12 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
-import { Button, ChipRow, Empty, ItemThumb } from '../../components/ui';
+import { Bouncy, Button, ChipRow, Empty, ItemThumb } from '../../components/ui';
 import { useStore, useWearCounts } from '../../lib/store';
-import { useTheme } from '../../lib/theme';
+import { font, TAB_BAR_SPACE, useTheme } from '../../lib/theme';
 import { archived, CATEGORIES, inCloset } from '../../lib/types';
 
 const COLS = 3;
@@ -19,7 +21,7 @@ export default function Wardrobe() {
   const [view, setView] = useState<'Closet' | 'Wishlist' | 'Archived'>('Closet');
   const [sort, setSort] = useState<'Newest' | 'Most worn' | 'Least worn'>('Newest');
 
-  const size = Math.floor((Math.min(width, 700) - 16 * 2 - 10 * (COLS - 1)) / COLS);
+  const size = Math.floor((Math.min(width, 700) - 20 * 2 - 10 * (COLS - 1)) / COLS);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -44,27 +46,48 @@ export default function Wardrobe() {
         key={COLS}
         numColumns={COLS}
         keyExtractor={(i) => i.id}
-        contentContainerStyle={{ padding: 16, gap: 10, maxWidth: 700, width: '100%', alignSelf: 'center' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: TAB_BAR_SPACE, gap: 10, maxWidth: 700, width: '100%', alignSelf: 'center' }}
         columnWrapperStyle={{ gap: 10 }}
         ListHeaderComponent={
-          <View style={{ gap: 10, marginBottom: 6 }}>
+          <View style={{ gap: 12, marginBottom: 6 }}>
+            <Bouncy onPress={() => router.push('/suggest')}>
+              <LinearGradient colors={colors.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 26, padding: 18, gap: 4 }}>
+                <View style={[ui.row, { justifyContent: 'space-between' }]}>
+                  <Text style={{ fontFamily: font.display, fontSize: 22, color: '#FFFFFF', letterSpacing: -0.6 }}>what should I wear?</Text>
+                  <View style={{ backgroundColor: colors.lime, borderRadius: 999, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="arrow-forward" size={18} color={colors.onLime} />
+                  </View>
+                </View>
+                <Text style={{ fontFamily: font.body, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
+                  {items.length ? `Get a fit from your ${items.length} pieces, styled for today’s weather ✨` : 'Add a few pieces and get outfit ideas for today ✨'}
+                </Text>
+              </LinearGradient>
+            </Bouncy>
             <View style={[ui.row, { gap: 10 }]}>
-              <TextInput
-                placeholder="Search name, brand, color, tag"
-                value={query}
-                onChangeText={setQuery}
-                style={[ui.input, { flex: 1 }]}
+              <View style={[ui.input, ui.row, { flex: 1, paddingVertical: 0, gap: 8 }]}>
+                <Ionicons name="search" size={18} color={colors.muted} />
+                <TextInput
+                  placeholder="Search your closet"
+                  placeholderTextColor={colors.muted}
+                  value={query}
+                  onChangeText={setQuery}
+                  style={{ flex: 1, paddingVertical: 13, fontFamily: font.body, fontSize: 15, color: colors.text }}
+                />
+              </View>
+              <Button
+                title="Add"
+                icon={<Ionicons name="add" size={20} color="#FFFFFF" />}
+                onPress={() => router.push({ pathname: '/item/edit', params: { wishlist: view === 'Wishlist' ? '1' : '' } })}
               />
-              <Button title="+ Add" onPress={() => router.push({ pathname: '/item/edit', params: { wishlist: view === 'Wishlist' ? '1' : '' } })} />
             </View>
             <ChipRow options={['Closet', 'Wishlist', 'Archived']} selected={[view]} onToggle={(v) => setView(v as typeof view)} />
             {view === 'Closet' && inLaundry.length ? (
-              <View style={[ui.card, ui.row, { padding: 10, gap: 10, backgroundColor: colors.accentSoft, borderColor: colors.accentSoft }]}>
+              <View style={[ui.card, ui.row, { padding: 14, gap: 10 }]}>
                 <Text style={[ui.body, { flex: 1 }]}>
                   🧺 {inLaundry.length} item{inLaundry.length === 1 ? '' : 's'} in the laundry
                 </Text>
                 <Pressable onPress={() => inLaundry.forEach((i) => saveItem({ ...i, status: undefined }))} hitSlop={8}>
-                  <Text style={[ui.body, { color: colors.accent, fontWeight: '600' }]}>Mark all clean</Text>
+                  <Text style={[ui.body, { color: colors.accent, fontFamily: font.bodyBold }]}>Mark all clean</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -80,13 +103,14 @@ export default function Wardrobe() {
               <Pressable
                 onPress={() => setSort((s) => (s === 'Newest' ? 'Most worn' : s === 'Most worn' ? 'Least worn' : 'Newest'))}
               >
-                <Text style={ui.muted}>Sort: {sort} ⇅</Text>
+                <Text style={[ui.muted, { color: colors.text }]}>{sort} ⇅</Text>
               </Pressable>
             </View>
           </View>
         }
         ListEmptyComponent={
           <Empty
+            emoji={view === 'Wishlist' ? '🛍️' : view === 'Archived' ? '📦' : '👕'}
             title={view === 'Wishlist' ? 'Wishlist is empty' : view === 'Archived' ? 'Nothing archived' : 'Your closet is empty'}
             hint={
               view === 'Archived'
@@ -98,7 +122,7 @@ export default function Wardrobe() {
         renderItem={({ item }) => (
           <Pressable onPress={() => router.push(`/item/${item.id}`)} style={{ width: size }}>
             <ItemThumb item={item} size={size} badge={wears[item.id] ? `${wears[item.id]}×` : undefined} />
-            <Text numberOfLines={1} style={[ui.muted, { marginTop: 4 }]}>
+            <Text numberOfLines={1} style={[ui.muted, { marginTop: 6, fontSize: 12 }]}>
               {item.brand ? `${item.brand} · ` : ''}
               {item.name}
             </Text>
