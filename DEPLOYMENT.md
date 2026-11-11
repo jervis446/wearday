@@ -10,9 +10,8 @@ Live resources for Wearday. This file holds no secrets: keys live in Supabase, C
 | iPhone (browser, simulator build) | Appetize.io app `josbgjh7naecp3sdab4ossxohy` | https://appetize.io/app/josbgjh7naecp3sdab4ossxohy |
 | Sign-in emails | Gmail SMTP (`smtp.gmail.com:465`) via a Gmail app password, entered in Supabase → Authentication → SMTP | Sender name "Wearday", 30 emails/hour in Supabase (Gmail allows about 500/day) |
 
-Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`, `20261110090000_noha_money`, `20261110100000_asanoha_profiles`, `20261111090000_friends_and_fits` (applied 11 November 2026; friends, fit posts, ratings, reports, blocks and the private `fits` storage bucket).
+Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`, `20261110090000_noha_money`, `20261110100000_asanoha_profiles`, `20261111090000_friends_and_fits` (applied 11 November 2026; friends, fit posts, ratings, reports, blocks and the private `fits` storage bucket), `20261111100000_noha_keep_payment_records` (applied 11 November 2026; payment records now survive account deletion, matching `noha_money`).
 
-Pending on live: `20261111100000_noha_keep_payment_records`. Until it's applied, the live database still links `noha_transactions` and `noha_orders` to `auth.users` with `on delete cascade` (from an earlier draft of `noha_money`), so deleting an account would delete its payment records. Dry-run checked on live on 11 November 2026, when there were no wallet records yet. Apply with `npx supabase db push`, or paste the file into the SQL Editor and then record it: `insert into supabase_migrations.schema_migrations (version, name) values ('20261111100000', 'noha_keep_payment_records');`
 
 EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_AUTH_PROVIDERS=email`, `EXPO_PUBLIC_SUGGEST_URL`.
 
