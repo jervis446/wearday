@@ -4,7 +4,7 @@
 
 -- ---------- profiles ----------
 
-create table public.profiles (
+create table public.wearday_profiles (
   user_id uuid primary key default auth.uid() references auth.users (id) on delete cascade,
   username text not null unique
     check (username ~ '^[a-z0-9_.]{3,20}$' and username !~ '^\.|\.$|\.\.'),
@@ -13,10 +13,10 @@ create table public.profiles (
   created_at timestamptz not null default now()
 );
 
-alter table public.profiles enable row level security;
-revoke all on public.profiles from anon, authenticated;
-grant select, delete on public.profiles to authenticated;
-grant insert (username, display_name), update (username, display_name) on public.profiles to authenticated;
+alter table public.wearday_profiles enable row level security;
+revoke all on public.wearday_profiles from anon, authenticated;
+grant select, delete on public.wearday_profiles to authenticated;
+grant insert (username, display_name), update (username, display_name) on public.wearday_profiles to authenticated;
 
 -- ---------- friendships and blocks ----------
 
@@ -64,13 +64,13 @@ language sql stable security definer set search_path = public as $$
   );
 $$;
 
-create policy "See own and friends' profiles" on public.profiles for select to authenticated
+create policy "See own and friends' profiles" on public.wearday_profiles for select to authenticated
   using (user_id = (select auth.uid()) or public.is_friend(user_id));
-create policy "Create own profile" on public.profiles for insert to authenticated
+create policy "Create own profile" on public.wearday_profiles for insert to authenticated
   with check (user_id = (select auth.uid()));
-create policy "Edit own profile" on public.profiles for update to authenticated
+create policy "Edit own profile" on public.wearday_profiles for update to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
-create policy "Delete own profile" on public.profiles for delete to authenticated
+create policy "Delete own profile" on public.wearday_profiles for delete to authenticated
   using (user_id = (select auth.uid()));
 
 create policy "See own friendships" on public.friendships for select to authenticated
@@ -90,11 +90,11 @@ begin
   if me is null then
     raise exception 'Not signed in';
   end if;
-  if not exists (select 1 from public.profiles where user_id = me) then
+  if not exists (select 1 from public.wearday_profiles where user_id = me) then
     raise exception 'Choose a username first';
   end if;
 
-  select user_id into target from public.profiles where username = lower(btrim(target_username));
+  select user_id into target from public.wearday_profiles where username = lower(btrim(target_username));
   -- Someone who blocked you looks exactly like a username that doesn't exist.
   if target is null or exists (select 1 from public.blocks where blocker = target and blocked = me) then
     raise exception 'No one has that username';
@@ -200,7 +200,7 @@ language sql stable security definer set search_path = public as $$
          case when f.status = 'accepted' then 'friend' when f.requester = auth.uid() then 'outgoing' else 'incoming' end,
          coalesce(f.responded_at, f.created_at)
   from public.friendships f
-  join public.profiles p on p.user_id = case when f.requester = auth.uid() then f.addressee else f.requester end
+  join public.wearday_profiles p on p.user_id = case when f.requester = auth.uid() then f.addressee else f.requester end
   where f.requester = auth.uid() or f.addressee = auth.uid()
   order by 4, p.display_name;
 $$;
@@ -210,7 +210,7 @@ returns table (user_id uuid, username text, display_name text)
 language sql stable security definer set search_path = public as $$
   select b.blocked, p.username, p.display_name
   from public.blocks b
-  left join public.profiles p on p.user_id = b.blocked
+  left join public.wearday_profiles p on p.user_id = b.blocked
   where b.blocker = auth.uid()
   order by b.created_at desc;
 $$;
@@ -382,7 +382,7 @@ language sql stable security invoker set search_path = public as $$
   select p.id, p.author, pr.username, pr.display_name, p.photo_path, p.caption, p.item_names, p.created_at,
          r.reaction, r.comment
   from public.fit_posts p
-  join public.profiles pr on pr.user_id = p.author
+  join public.wearday_profiles pr on pr.user_id = p.author
   left join public.fit_ratings r on r.post_id = p.id and r.rater = auth.uid()
   where p.author in (
       select case when f.requester = auth.uid() then f.addressee else f.requester end
@@ -421,7 +421,7 @@ language sql stable security invoker set search_path = public as $$
   select r.rater, pr.username, pr.display_name, r.reaction, r.comment, r.updated_at
   from public.fit_ratings r
   join public.fit_posts p on p.id = r.post_id and p.author = auth.uid()
-  left join public.profiles pr on pr.user_id = r.rater
+  left join public.wearday_profiles pr on pr.user_id = r.rater
   where r.post_id = post
   order by r.updated_at desc;
 $$;

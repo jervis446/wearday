@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Account & Noha Money · Wearday</title>
+<meta name="description" content="Sign in to see your Noha Money wallet, history and Wearday Premium.">
+<link rel="canonical" href="https://wearday.asanoha.co.in/account.html">
+<meta name="theme-color" content="#08070d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Wearday">
+<meta property="og:title" content="Account & Noha Money · Wearday">
+<meta property="og:description" content="Sign in to see your Noha Money wallet, history and Wearday Premium.">
+<meta property="og:url" content="https://wearday.asanoha.co.in/account.html">
+<meta property="og:image" content="https://wearday.asanoha.co.in/assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/img/icon-48.png" sizes="48x48">
+<link rel="icon" href="/assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/img/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css?v=6e5f4278">
+<script>try{var t=localStorage.getItem('wearday:theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+
+</head>
+<body>
+<a class="sr" href="#main">Skip to content</a>
+<header class="wrap nav">
+  <div class="nav-in">
+    <a class="brand" href="/" aria-label="Wearday home"><img src="/assets/img/icon-192.png" alt="" width="30" height="30">wearday<small>by asanoha</small></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/#play">Play</a>
+      <a href="/#features">Features</a>
+      <a href="/#premium">Premium</a>
+      <a href="/support.html">Help</a>
+      <a class="btn small" href="/account.html">Account</a>
+    </nav>
+    <button class="theme-btn" type="button" data-theme-toggle aria-label="Switch light or dark">◐</button>
+  </div>
+</header>
+<main id="main">
+<div class="wrap doc" style="max-width:640px">
+  <div class="kicker">Your account</div>
+  <h1 id="acc-title">sign in.</h1>
+  <p class="muted" id="acc-sub">One Asanoha account for Wearday and asanoha.co.in. Signed in on one, signed in on both. New here? Signing in creates your account and gets you early access.</p>
+
+  <div id="signed-out" class="card stack" hidden>
+    <button class="btn ghost" type="button" id="google" style="background:var(--text);color:var(--bg);border:0"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-2.9-.8-4.6s.3-3.2.8-4.6l-7.8-6.1C1 16.7 0 20.2 0 24s1 7.3 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.8-5.8l-7.4-5.7c-2.1 1.4-4.8 2.2-8.4 2.2-6.3 0-11.6-4.1-13.5-9.9l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>
+    <p class="muted" style="margin:0;text-align:center;font-size:14px">or with email</p>
+    <form id="email-form" class="stack">
+      <label class="sr" for="email">Email</label>
+      <input class="field" id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+      <button class="btn" type="submit">Email me a code</button>
+    </form>
+    <form id="code-form" class="stack" hidden>
+      <p class="muted" style="margin:0" id="code-hint"></p>
+      <label class="sr" for="code">6-digit code</label>
+      <input class="field" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="font:700 28px var(--display);letter-spacing:.4em;text-align:center">
+      <button class="btn" type="submit">Sign in</button>
+      <button class="btn ghost small" type="button" id="restart">Use a different email</button>
+    </form>
+    <p class="muted" id="auth-msg" role="status" style="margin:0"></p>
+  </div>
+
+  <div id="signed-in" class="stack" hidden>
+    <div class="card" style="background:var(--grad);border:0;color:#fff">
+      <div class="row" style="justify-content:space-between">
+        <span style="font-weight:700"><span class="noha-coin" aria-hidden="true"></span> Noha Money</span>
+        <span class="by" style="color:rgba(255,255,255,.8)">by <b style="color:#fff">asanoha</b></span>
+      </div>
+      <div class="big-num" id="balance" style="margin:14px 0 6px">₹–</div>
+      <div id="balance-note" style="color:rgba(255,255,255,.88)"></div>
+    </div>
+
+    <div class="card stack">
+      <h2 style="font-size:24px;margin:0">Wearday Premium</h2>
+      <p class="muted" style="margin:0" id="premium-status">Checking…</p>
+      <div class="stack" id="buy"></div>
+      <p class="muted" style="margin:0;font-size:14px">Pays once, never auto-renews. Cashback covers up to 15%. <a href="/terms.html#premium">Terms</a> · <a href="/refunds.html">Refunds</a></p>
+    </div>
+
+    <div class="card stack">
+      <h2 style="font-size:24px;margin:0">Add money</h2>
+      <div class="chips" id="amounts" role="group" aria-label="Amount">
+        <button class="chip" aria-pressed="false" data-amt="100">₹100</button>
+        <button class="chip" aria-pressed="true" data-amt="250">₹250</button>
+        <button class="chip" aria-pressed="false" data-amt="500">₹500</button>
+        <button class="chip" aria-pressed="false" data-amt="1000">₹1,000</button>
+      </div>
+      <button class="btn lime" id="topup">Add ₹250 by UPI</button>
+      <p class="muted" style="margin:0;font-size:14px" id="topup-msg">Valid for 12 months. Unused money you add can be refunded to your UPI account.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:24px;margin-top:0">History</h2>
+      <p class="muted" style="margin-top:0;font-size:14px">Everything from Wearday and the Asanoha shop, in one place.</p>
+      <div id="history"><p class="muted">Loading…</p></div>
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <span class="muted" id="who"></span>
+      <button class="btn ghost small" id="signout">Sign out</button>
+    </div>
+  </div>
+</div>
+</main>
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a class="brand" href="/"><img src="/assets/img/icon-192.png" alt="" width="30" height="30">wearday</a>
+      <p class="muted" style="max-width:340px;margin:12px 0 0">Your closet, but make it iconic. Snap clothes, build fits, log your OOTD.</p>
+      <p class="by" style="margin-top:18px">an <b>asanoha</b> product</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="/#play">Fit Slots</a>
+      <a href="/support.html">Help &amp; contact</a>
+      <a href="/account.html">Account &amp; Noha Money</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/refunds.html">Refunds &amp; cancellation</a>
+      <a href="/delete-account.html">Delete account</a>
+    </nav>
+  </div>
+  <div class="wrap muted" style="font-size:13px;margin-top:28px">© 2026 Asanoha Ayurveda LLP. Wearday™ and Noha Money are offered by Asanoha Ayurveda LLP, Bangalore, India.</div>
+</footer>
+<script src="/assets/site.js?v=6e5f4278" defer></script>
+<script type="module" src="/assets/account.js?v=6e5f4278"></script>
+</body>
+</html>

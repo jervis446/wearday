@@ -2,12 +2,13 @@ import * as Linking from 'expo-linking';
 import { useState } from 'react';
 import { Switch, Text, TextInput, View } from 'react-native';
 
+import { TERMS_URL } from '../../lib/links';
 import { saveProfile, SocialError, type Profile } from '../../lib/social/api';
 import { cleanDisplayName, DISPLAY_NAME_MAX, displayNameProblem, normalizeUsername, USERNAME_MAX, usernameProblem } from '../../lib/social/rules';
 import { useTheme } from '../../lib/theme';
 import { Button } from '../ui';
 
-export const GUIDELINES_URL = 'https://jervis446.github.io/wearday/terms.html#community';
+const GUIDELINES_URL = `${TERMS_URL}#community`;
 
 /**
  * Choose a username and name before using Friends. The first time, people also confirm they're

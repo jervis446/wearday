@@ -21,7 +21,7 @@ async function person(name: string, withProfile = true): Promise<Person> {
   const { data, error } = await c.auth.signInWithPassword({ email, password: 'pw-123456' });
   assert.ifError(error);
   const username = tag.toLowerCase().slice(0, 20);
-  if (withProfile) assert.ifError((await c.from('profiles').insert({ username, display_name: name }).select().single()).error);
+  if (withProfile) assert.ifError((await c.from('wearday_profiles').insert({ username, display_name: name }).select().single()).error);
   return { c, id: data.user!.id, username };
 }
 
@@ -47,18 +47,18 @@ test('profiles: valid unique usernames, own row only, strangers are invisible', 
   const c = await person('cy', false);
 
   for (const bad of ['ab', 'Has Space', 'UPPER', 'a..b', '.dot', 'dot.', 'x'.repeat(21), 'emoji😀'])
-    assert.ok((await c.c.from('profiles').insert({ username: bad, display_name: 'Cy' })).error, `rejects ${bad}`);
-  assert.ok((await c.c.from('profiles').insert({ username: a.username, display_name: 'Cy' })).error, 'username taken');
-  assert.ok((await c.c.from('profiles').insert({ username: 'cy_ok', display_name: '  padded ' })).error, 'untrimmed name');
+    assert.ok((await c.c.from('wearday_profiles').insert({ username: bad, display_name: 'Cy' })).error, `rejects ${bad}`);
+  assert.ok((await c.c.from('wearday_profiles').insert({ username: a.username, display_name: 'Cy' })).error, 'username taken');
+  assert.ok((await c.c.from('wearday_profiles').insert({ username: 'cy_ok', display_name: '  padded ' })).error, 'untrimmed name');
   // Can't create or edit a profile for someone else
-  assert.ok((await c.c.from('profiles').insert({ user_id: a.id, username: 'cy_fake', display_name: 'x' })).error);
-  await c.c.from('profiles').update({ display_name: 'hacked' }).eq('user_id', a.id);
-  assert.equal((await admin.from('profiles').select('display_name').eq('user_id', a.id).single()).data!.display_name, 'ana');
+  assert.ok((await c.c.from('wearday_profiles').insert({ user_id: a.id, username: 'cy_fake', display_name: 'x' })).error);
+  await c.c.from('wearday_profiles').update({ display_name: 'hacked' }).eq('user_id', a.id);
+  assert.equal((await admin.from('wearday_profiles').select('display_name').eq('user_id', a.id).single()).data!.display_name, 'ana');
 
   // Strangers can't read each other's profiles
-  assert.equal(((await a.c.from('profiles').select('username').eq('user_id', b.id)).data ?? []).length, 0);
+  assert.equal(((await a.c.from('wearday_profiles').select('username').eq('user_id', b.id)).data ?? []).length, 0);
   await befriend(a, b);
-  assert.equal(((await a.c.from('profiles').select('username').eq('user_id', b.id)).data ?? []).length, 1);
+  assert.equal(((await a.c.from('wearday_profiles').select('username').eq('user_id', b.id)).data ?? []).length, 1);
 });
 
 test('friend requests: by exact username, mutual requests accept, no direct writes', async () => {
@@ -239,12 +239,12 @@ test('daily post limit, signed-out access, and account deletion clean-up', async
   const anon = createClient(URL, ANON, { auth: { persistSession: false } });
   assert.ok((await anon.rpc('fit_feed')).error);
   assert.ok((await anon.rpc('send_friend_request', { target_username: a.username })).error);
-  assert.equal(((await anon.from('profiles').select('*')).data ?? []).length, 0);
+  assert.equal(((await anon.from('wearday_profiles').select('*')).data ?? []).length, 0);
   assert.equal(((await anon.from('fit_posts').select('*')).data ?? []).length, 0);
 
   const b = await person('del');
   await befriend(a, b);
   assert.ifError((await b.c.rpc('delete_my_account')).error);
   assert.equal((await a.c.rpc('friend_list')).data!.length, 0);
-  assert.equal((await admin.from('profiles').select('user_id').eq('user_id', b.id)).data!.length, 0);
+  assert.equal((await admin.from('wearday_profiles').select('user_id').eq('user_id', b.id)).data!.length, 0);
 });

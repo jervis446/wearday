@@ -83,7 +83,7 @@ async function myId() {
 
 export async function getMyProfile(): Promise<Profile | null> {
   const id = await myId();
-  const { data, error } = await client().from('profiles').select('username, display_name').eq('user_id', id).maybeSingle();
+  const { data, error } = await client().from('wearday_profiles').select('username, display_name').eq('user_id', id).maybeSingle();
   if (error) fail(error);
   return data ? { username: data.username, displayName: data.display_name } : null;
 }
@@ -92,10 +92,10 @@ export async function saveProfile(profile: Profile, isNew: boolean): Promise<voi
   const row = { username: profile.username, display_name: profile.displayName };
   const known = { [UNIQUE]: 'That username is taken. Try another one.', [CHECK]: 'That username or name isn’t allowed.' };
   if (isNew) {
-    const { error } = await client().from('profiles').insert(row);
+    const { error } = await client().from('wearday_profiles').insert(row);
     if (error) fail(error, known);
   } else {
-    const { error } = await client().from('profiles').update(row).eq('user_id', await myId());
+    const { error } = await client().from('wearday_profiles').update(row).eq('user_id', await myId());
     if (error) fail(error, known);
   }
 }

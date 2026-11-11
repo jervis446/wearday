@@ -3,12 +3,12 @@ import { Stack } from 'expo-router';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ByAsanoha } from '../components/NohaMoney';
 import { SignInPanel } from '../components/SignInPanel';
 import { Backdrop } from '../components/ui';
+import { PRIVACY_URL, TERMS_URL } from '../lib/links';
 import { font, useTheme } from '../lib/theme';
 
-const PRIVACY_URL = 'https://jervis446.github.io/wearday/privacy.html';
-const TERMS_URL = 'https://jervis446.github.io/wearday/terms.html';
 
 const STICKERS = [
   { text: '👟 closet', rotate: '-8deg', top: 6, left: 4 },
@@ -88,6 +88,9 @@ export default function Welcome() {
               </Text>
               . Your wardrobe is private to your account.
             </Text>
+            <View style={{ alignItems: 'center' }}>
+              <ByAsanoha />
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

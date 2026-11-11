@@ -171,3 +171,31 @@ That runs the full stack locally with the same schema. Sign-in emails go to the 
 Tests:
 - `npm test`: unit tests, including two-phone sync
 - `npm run test:db`: security and sync against the local Supabase (needs `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_KEY` from `npx supabase status -o env`)
+
+## 9. Noha Money (shared Asanoha wallet)
+
+One wallet and one transaction history per account, shared by every Asanoha product. The tables live in this Supabase project, so asanoha.co.in should sign people in with this same project to see the same balance.
+
+1. Apply the migration: `npx supabase db push` (adds `noha_transactions`, `noha_lots`, `noha_products`, `noha_orders`, `premium_grants` and the functions below).
+2. Schedule expiry once a day (Supabase → Integrations → Cron): `select public.noha_expire_lots();`
+3. Give credit from the server only (service role), for example cashback after an Asanoha order is delivered:
+   ```sql
+   select public.noha_credit('<user uuid>', 'asanoha', 'cashback', 4990, 'bonus', now() + interval '365 days',
+                             '10% back on order ASN-1042', 'ASN-1042', 'cashback:ASN-1042');
+   ```
+   The last argument is an idempotency key: running the same line twice never pays twice.
+4. Apps spend with `noha_buy(product_id, idempotency_key)`. Products and prices are rows in `noha_products`.
+5. UPI top-ups through NohaPI: deploy `npx supabase functions deploy noha-pay --no-verify-jwt`, set
+   `npx supabase secrets set NOHA_GATEWAY_URL=https://pay.asanoha.co.in NOHA_MERCHANT_ID=<uuid> NOHA_WEBHOOK_SECRET=<secret>`,
+   and point the gateway's webhook at `https://<project>.supabase.co/functions/v1/noha-pay/webhook`. Until then, "Add money" says it opens soon.
+
+Where people can pay with Noha Money: the website account page always; in the app only on the platforms listed in `EXPO_PUBLIC_NOHA_PAY` (default `web`). Don't add `ios` (Apple requires In-App Purchase). Add `android` only after enrolling in Google Play's User Choice Billing for India.
+
+## 10. Website (wearday.asanoha.co.in)
+
+The site is built from `site/` into `docs/` (served by GitHub Pages): edit `site/pages/*.html`, then run `python3 site/build.py`.
+
+1. GitHub → `jervis446/wearday` → Settings → Pages: Source **Deploy from a branch**, Branch **main**, folder **/docs**. The custom domain comes from `docs/CNAME`.
+2. At the DNS provider for asanoha.co.in, add a record: type **CNAME**, name **wearday**, value **jervis446.github.io**.
+3. Back in Settings → Pages, wait for the DNS check, then tick **Enforce HTTPS**.
+4. Supabase → Authentication → URL Configuration → Redirect URLs: add `https://wearday.asanoha.co.in/account.html`.
