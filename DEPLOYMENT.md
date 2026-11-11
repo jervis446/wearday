@@ -12,6 +12,8 @@ Live resources for Wearday. This file holds no secrets: keys live in Supabase, C
 
 Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`.
 
+Not yet applied (branch `claude/friends-rate-my-fit`): `20261111090000_friends_and_fits` (friends, fit posts, ratings, reports, blocks and the private `fits` storage bucket). Apply it with `npx supabase db push` before shipping an app build that includes Friends; older app builds keep working without it.
+
 EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_AUTH_PROVIDERS=email`, `EXPO_PUBLIC_SUGGEST_URL`.
 
 ## Not set up yet
@@ -21,6 +23,8 @@ EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_
 - The old Sydney project `wearday` (`zkazpfphgppmprgdbrkl`) is unused and can be deleted.
 
 ## Common tasks
+- Review reported fits: in Supabase → SQL Editor run `select id, author, caption, report_count, created_at from fit_posts where hidden order by created_at desc;`. To open a photo, find its `photo_path` in Storage → `fits`. Restore a fit that's fine with `update fit_posts set hidden = false where id = '…';`, or delete one that breaks the guidelines with `delete from fit_posts where id = '…';` and remove its photo in Storage. Reporters are in `fit_reports`.
+- Suspend an account that breaks the guidelines: Supabase → Authentication → Users → the user → Ban user.
 - Redeploy the Worker: `cd worker && npx wrangler deploy`
 - New database change: add a file in `supabase/migrations/`, then `npx supabase link --project-ref fkhxgkscnkxtwnvecoyv` and `npx supabase db push`
 - New Android test build: `eas build -p android --profile preview`

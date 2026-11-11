@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 
 import { logError } from './diagnostics';
 import { supabase } from './supabase';
+import { deleteAllFitPhotos } from './social/api';
 import { deleteAllPhotos } from './sync/supabaseRemote';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -157,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const uid = session?.user.id;
         if (!uid) throw new Error('Not signed in.');
         await deleteAllPhotos(client, uid);
+        await deleteAllFitPhotos(uid);
         const { error } = await client.rpc('delete_my_account');
         if (error) throw friendly(error);
         await client.auth.signOut();

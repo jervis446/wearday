@@ -124,7 +124,7 @@ function SignedIn() {
         onPress={async () => {
           const ok = await ask(
             'Delete your account?',
-            'This permanently deletes your account and everything stored in the cloud, including photos. The wardrobe on this phone is kept and moves into the next account that signs in here.',
+            'This permanently deletes your account and everything stored in the cloud, including photos, fits you shared and your friends list. The wardrobe on this phone is kept and moves into the next account that signs in here.',
             'Delete',
           );
           if (!ok) return;
