@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { emptySyncState, fingerprint, mergeRemote, runSync, type Photos, type PushDoc, type Remote, type RemoteDoc, type SyncState } from '../src/lib/sync/engine.ts';
+import { emptySyncState, fingerprint, mergeRemote, pendingChanges, runSync, type Photos, type PushDoc, type Remote, type RemoteDoc, type SyncState } from '../src/lib/sync/engine.ts';
+import { ownerAction } from '../src/lib/sync/owner.ts';
 
 /** In-memory stand-in for Supabase with the same rules as push_docs (newer edit wins). */
 class FakeCloud implements Remote {
@@ -197,4 +198,132 @@ test('photos stored inside the data (web) still upload and arrive', async () => 
   await b.sync(2);
   assert.equal(b.db.items[0].imageUri, `file:///b/images/${name}`);
   assert.ok(b.files.has(name));
+});
+
+// ---------- accounts sharing one phone ----------
+
+/**
+ * One phone, several accounts (one cloud each). Mirrors SyncProvider: the local data has an
+ * owner; signing in adopts ownerless data, keeps your own, and clears someone else's.
+ */
+class SharedPhone {
+  db: any = { items: [], outfits: [], logs: [], trips: [], collections: [] };
+  ownerId: string | null = null;
+  states = new Map<string, SyncState>();
+  files = new Map<string, Uint8Array>();
+  uid: string | null = null;
+  clouds: Record<string, FakeCloud>;
+  constructor(clouds: Record<string, FakeCloud>) {
+    this.clouds = clouds;
+  }
+  photos: Photos = {
+    nameOf: (uri) => uri.split('/').pop() ?? '',
+    localUri: (n) => `file:///phone/images/${n}`,
+    hasLocal: (n) => this.files.has(n),
+    read: async (uri) => this.files.get(uri.split('/').pop()!),
+    download: async (n) => {
+      const b = this.uid ? this.clouds[this.uid].photos.get(n) : undefined;
+      if (!b) throw new Error('404');
+      this.files.set(n, b);
+    },
+  };
+  signIn(uid: string) {
+    this.uid = uid;
+    const action = ownerAction(this.ownerId, uid);
+    if (action === 'reset') {
+      this.states.delete(this.ownerId!);
+      this.db = { items: [], outfits: [], logs: [], trips: [], collections: [] };
+      this.files.clear();
+    }
+    this.ownerId = uid;
+    return action;
+  }
+  signOut() {
+    this.states.delete(this.uid!);
+    this.uid = null;
+  }
+  pending() {
+    return pendingChanges(this.db, this.states.get(this.uid!) ?? emptySyncState(), this.photos);
+  }
+  async sync(now: number) {
+    const uid = this.uid!;
+    assert.equal(this.ownerId, uid, 'never syncs data owned by another account');
+    const r = await runSync({ getDb: () => this.db, apply: (fn) => (this.db = fn(this.db)), state: this.states.get(uid) ?? emptySyncState(), remote: this.clouds[uid], photos: this.photos, now: () => now });
+    this.states.set(uid, r.state);
+    return r;
+  }
+}
+
+const cloudIds = (c: FakeCloud) => [...c.rows.values()].filter((r) => !r.deleted).map((r) => r.id).sort();
+
+test('ownerAction: adopt ownerless data, keep your own, reset someone else’s', () => {
+  assert.equal(ownerAction(null, 'u1'), 'adopt');
+  assert.equal(ownerAction(undefined, 'u1'), 'adopt');
+  assert.equal(ownerAction('', 'u1'), 'adopt');
+  assert.equal(ownerAction('u1', 'u1'), 'keep');
+  assert.equal(ownerAction('u1', 'u2'), 'reset');
+});
+
+test('a different account signing in on the same phone never receives the previous owner’s wardrobe', async () => {
+  const clouds = { alice: new FakeCloud(), bob: new FakeCloud() };
+  clouds.bob.rows.set('item:bob-coat', { kind: 'item', id: 'bob-coat', data: item('bob-coat'), deleted: false, client_updated_at: 1, seq: ++clouds.bob.seq });
+  const phone = new SharedPhone(clouds);
+
+  // Data made before anyone signed in (or by the older no-login version) is adopted by the first account.
+  phone.files.set('tee.jpg', new Uint8Array([1]));
+  phone.db.items.push(item('alice-tee', 'file:///phone/images/tee.jpg'));
+  assert.equal(phone.signIn('alice'), 'adopt');
+  await phone.sync(100);
+  assert.deepEqual(cloudIds(clouds.alice), ['alice-tee']);
+  assert.ok(clouds.alice.photos.has('tee.jpg'));
+
+  // Alice edits, syncs, and signs out with nothing pending.
+  phone.db.items.push(item('alice-jeans'));
+  await phone.sync(101);
+  assert.equal(phone.pending(), 0);
+  phone.signOut();
+
+  // Bob signs in: Alice's data is cleared first, never merged or pushed into Bob's account.
+  assert.equal(phone.signIn('bob'), 'reset');
+  await phone.sync(200);
+  assert.deepEqual(cloudIds(clouds.bob), ['bob-coat']);
+  assert.equal(clouds.bob.photos.size, 0);
+  assert.deepEqual(phone.db.items.map((i: any) => i.id), ['bob-coat']);
+  assert.ok(!phone.files.has('tee.jpg'));
+  // …and Bob's empty phone didn't delete anything from Alice's account either.
+  assert.deepEqual(cloudIds(clouds.alice), ['alice-jeans', 'alice-tee']);
+  phone.signOut();
+
+  // Alice comes back: her wardrobe comes down from her cloud, without Bob's.
+  assert.equal(phone.signIn('alice'), 'reset');
+  await phone.sync(300);
+  assert.deepEqual(phone.db.items.map((i: any) => i.id).sort(), ['alice-jeans', 'alice-tee']);
+  assert.deepEqual(cloudIds(clouds.bob), ['bob-coat']);
+});
+
+test('signing back in as the same account keeps local changes and pushes them', async () => {
+  const clouds = { alice: new FakeCloud() };
+  const phone = new SharedPhone(clouds);
+  assert.equal(phone.signIn('alice'), 'adopt');
+  phone.db.items.push(item('tee'));
+  await phone.sync(100);
+  phone.db.items.push(item('offline-edit')); // made while offline, then signed out
+  assert.equal(phone.pending(), 1);
+  phone.signOut();
+  assert.equal(phone.signIn('alice'), 'keep');
+  await phone.sync(200);
+  assert.deepEqual(cloudIds(clouds.alice), ['offline-edit', 'tee']);
+});
+
+test('pendingChanges counts unsynced new, edited and deleted records', async () => {
+  const clouds = { alice: new FakeCloud() };
+  const phone = new SharedPhone(clouds);
+  phone.signIn('alice');
+  phone.db.items.push(item('a'), item('b'), item('c'));
+  assert.equal(phone.pending(), 3);
+  await phone.sync(100);
+  assert.equal(phone.pending(), 0);
+  phone.db.items = phone.db.items.filter((i: any) => i.id !== 'a').map((i: any) => (i.id === 'b' ? { ...i, name: 'B!' } : i));
+  phone.db.items.push(item('d'));
+  assert.equal(phone.pending(), 3); // a deleted, b edited, d new
 });

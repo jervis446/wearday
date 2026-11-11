@@ -1,4 +1,6 @@
-import { Item, todayKey, WearLog, wearable } from './types';
+import { type Mood, moodFit } from './moods.ts';
+import { hasStyle, styleFit, type StyleProfile } from './style.ts';
+import { type Item, todayKey, type WearLog, wearable } from './types.ts';
 
 /** Set in a .env file (see .env.example). Without it, the app uses the offline rule-based picker. */
 const URL_ = process.env.EXPO_PUBLIC_SUGGEST_URL?.replace(/\/+$/, '');
@@ -17,6 +19,10 @@ type Ctx = {
   occasion: string;
   coords?: { lat: number; lon: number };
   avoidItemIds?: string[];
+  /** How the person feels today (optional). */
+  mood?: Mood;
+  /** What we've learned about their style (optional). */
+  style?: StyleProfile;
   /** Use the offline picker even if AI is configured (e.g. free daily AI limit reached). */
   basic?: boolean;
 };
@@ -50,6 +56,8 @@ export async function suggestOutfit(ctx: Ctx): Promise<Suggestion> {
     lat: ctx.coords ? Math.round(ctx.coords.lat * 100) / 100 : undefined,
     lon: ctx.coords ? Math.round(ctx.coords.lon * 100) / 100 : undefined,
     avoidItemIds: ctx.avoidItemIds,
+    mood: ctx.mood ? { label: ctx.mood.label, hint: ctx.mood.hint } : undefined,
+    style: ctx.style && hasStyle(ctx.style) ? styleForRequest(ctx.style, new Set(owned.map((i) => i.id))) : undefined,
   };
 
   const controller = new AbortController();
@@ -75,6 +83,19 @@ export async function suggestOutfit(ctx: Ctx): Promise<Suggestion> {
   }
 }
 
+/** The profile as sent to the suggestion service: only ids of clothes in today's list. */
+export function styleForRequest(p: StyleProfile, known: Set<string>) {
+  const keep = (outfits: string[][]) => outfits.map((o) => o.filter((id) => known.has(id))).filter((o) => o.length >= 2);
+  return {
+    notes: p.notes,
+    favoriteColors: p.favoriteColors,
+    favoriteTags: p.favoriteTags,
+    lovedOutfits: keep(p.lovedOutfits),
+    dislikedOutfits: keep(p.dislikedOutfits),
+    moodOutfits: Object.fromEntries(Object.entries(p.moodOutfits).map(([m, o]) => [m, keep(o)]).filter(([, o]) => o.length)),
+  };
+}
+
 function currentSeason() {
   return ['Winter', 'Winter', 'Spring', 'Spring', 'Spring', 'Summer', 'Summer', 'Summer', 'Autumn', 'Autumn', 'Autumn', 'Winter'][
     new Date().getMonth()
@@ -86,25 +107,34 @@ export function basicSuggestion(ctx: Ctx, owned: Item[]): Suggestion {
   const last = lastWornMap(ctx.logs, ctx.itemsOfLog);
   const season = currentSeason();
   const avoid = new Set(ctx.avoidItemIds ?? []);
-  const score = (i: Item) =>
+  // Lower is better. Scored once per item, so the random part is stable while sorting.
+  const scoreOf = (i: Item) =>
     (i.seasons.length === 0 || i.seasons.includes(season as never) ? 0 : 100) +
     (avoid.has(i.id) ? 50 : 0) +
-    (last[i.id] ? 1 / (1 + daysSince(last[i.id])) * 40 : 0) +
+    (last[i.id] ? 1 / (1 + daysSince(last[i.id])) * 40 : 0) -
+    (ctx.mood ? moodFit(ctx.mood, i) * 15 : 0) -
+    (ctx.style ? styleFit(ctx.style, i) * 25 : 0) +
     Math.random() * 10;
+  const scores = new Map(owned.map((i) => [i.id, scoreOf(i)]));
+  const score = (i: Item) => scores.get(i.id)!;
   const pick = (cat: string) => owned.filter((i) => i.category === cat).sort((a, b) => score(a) - score(b))[0];
 
   const dress = pick('Dresses');
   const top = pick('Tops');
   const bottom = pick('Bottoms');
-  const useDress = dress && (!top || !bottom || Math.random() < 0.3);
+  // A dress when it fits today better than the best top-and-bottom pair (the random part keeps variety).
+  const useDress = !!dress && (!top || !bottom || score(dress) < (score(top) + score(bottom)) / 2);
   const chosen = [useDress ? dress : top, useDress ? undefined : bottom, pick('Shoes')];
-  if (season === 'Winter' || season === 'Autumn') chosen.push(pick('Outerwear'));
+  if (season === 'Winter' || season === 'Autumn' || ctx.mood?.label === 'Cozy') chosen.push(pick('Outerwear'));
   const itemIds = chosen.filter((i): i is Item => !!i).map((i) => i.id);
   if (itemIds.length < 2) throw new Error('Add a top and a bottom (or a dress) to get suggestions.');
+  const why = ['in-season clothes you haven’t worn lately'];
+  if (ctx.mood) why.push(`that suit a ${ctx.mood.label.toLowerCase()} mood`);
+  if (ctx.style && hasStyle(ctx.style)) why.push('leaning toward the outfits you loved');
   return {
-    name: `${season} pick`,
+    name: ctx.mood ? `${ctx.mood.emoji} ${ctx.mood.label} ${season.toLowerCase()} pick` : `${season} pick`,
     itemIds,
-    reason: 'Picked from in-season clothes you haven’t worn lately.',
+    reason: `Picked from ${why.join(', ')}.`,
     source: 'basic',
   };
 }

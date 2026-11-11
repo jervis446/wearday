@@ -10,7 +10,8 @@ Live resources for Wearday. This file holds no secrets: keys live in Supabase, C
 | iPhone (browser, simulator build) | Appetize.io app `josbgjh7naecp3sdab4ossxohy` | https://appetize.io/app/josbgjh7naecp3sdab4ossxohy |
 | Sign-in emails | Gmail SMTP (`smtp.gmail.com:465`) via a Gmail app password, entered in Supabase → Authentication → SMTP | Sender name "Wearday", 30 emails/hour in Supabase (Gmail allows about 500/day) |
 
-Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`.
+Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`, `20261110090000_noha_money`, `20261110100000_asanoha_profiles`, `20261111090000_friends_and_fits` (applied 11 November 2026; friends, fit posts, ratings, reports, blocks and the private `fits` storage bucket), `20261111100000_noha_keep_payment_records` (applied 11 November 2026; payment records now survive account deletion, matching `noha_money`).
+
 
 EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_AUTH_PROVIDERS=email`, `EXPO_PUBLIC_SUGGEST_URL`.
 
@@ -21,6 +22,8 @@ EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_
 - The old Sydney project `wearday` (`zkazpfphgppmprgdbrkl`) is unused and can be deleted.
 
 ## Common tasks
+- Review reported fits: in Supabase → SQL Editor run `select id, author, caption, report_count, created_at from fit_posts where hidden order by created_at desc;`. To open a photo, find its `photo_path` in Storage → `fits`. Restore a fit that's fine with `update fit_posts set hidden = false where id = '…';`, or delete one that breaks the guidelines with `delete from fit_posts where id = '…';` and remove its photo in Storage. Reporters are in `fit_reports`.
+- Suspend an account that breaks the guidelines: Supabase → Authentication → Users → the user → Ban user.
 - Redeploy the Worker: `cd worker && npx wrangler deploy`
 - New database change: add a file in `supabase/migrations/`, then `npx supabase link --project-ref fkhxgkscnkxtwnvecoyv` and `npx supabase db push`
 - New Android test build: `eas build -p android --profile preview`

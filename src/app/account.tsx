@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from 'reac
 import { NohaWalletCard } from '../components/NohaMoney';
 import { Button, Section } from '../components/ui';
 import { useAuth } from '../lib/auth';
+import { useStore } from '../lib/store';
 import { supabaseConfigured } from '../lib/supabase';
 import { clearSyncState, useSync } from '../lib/sync/SyncProvider';
 import { font, useTheme } from '../lib/theme';
@@ -47,7 +48,8 @@ export default function AccountScreen() {
 function SignedIn() {
   const { colors, ui } = useTheme();
   const { session, signOut, deleteAccount } = useAuth();
-  const { status, syncNow } = useSync();
+  const { status, syncNow, prepareSignOut } = useSync();
+  const { setOwner } = useStore();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
   const user = session!.user;
@@ -94,9 +96,21 @@ function SignedIn() {
         busy={busy === 'out'}
         variant="secondary"
         onPress={async () => {
-          if (!(await ask('Sign out?', 'You’ll need to sign in again to use Wearday. Your wardrobe stays on this phone.', 'Sign out'))) return;
+          if (!(await ask('Sign out?', 'You’ll need to sign in again to use Wearday. Your wardrobe stays on this phone until a different account signs in here.', 'Sign out'))) return;
           setBusy('out');
           try {
+            // Push anything not yet in the cloud: if another account signs in on this phone next,
+            // the local wardrobe is removed (it never merges into their account).
+            const pending = await prepareSignOut();
+            if (
+              pending > 0 &&
+              !(await ask(
+                'Some changes haven’t synced',
+                `${pending} change${pending === 1 ? '' : 's'} on this phone ${pending === 1 ? 'isn’t' : 'aren’t'} in your account yet. They’re kept if you sign back in here, but lost if a different account signs in on this phone. Sign out anyway?`,
+                'Sign out',
+              ))
+            )
+              return;
             await clearSyncState(user.id);
             await signOut();
           } catch (e) {
@@ -113,7 +127,7 @@ function SignedIn() {
         onPress={async () => {
           const ok = await ask(
             'Delete your account?',
-            'This permanently deletes your account and everything stored in the cloud, including photos. The wardrobe on this phone is kept.',
+            'This permanently deletes your account and everything stored in the cloud, including photos, fits you shared and your friends list. The wardrobe on this phone is kept and moves into the next account that signs in here.',
             'Delete',
           );
           if (!ok) return;
@@ -121,6 +135,8 @@ function SignedIn() {
           try {
             await deleteAccount();
             await clearSyncState(user.id);
+            // The kept wardrobe no longer belongs to an account: the next one to sign in adopts it.
+            setOwner(null);
           } catch (e) {
             setError((e as Error).message);
           } finally {

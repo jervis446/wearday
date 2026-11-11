@@ -1,16 +1,19 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Switch, Text, useWindowDimensions, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import { OutfitCanvas } from '../components/OutfitCanvas';
 import { Button, ChipRow } from '../components/ui';
 import { aiUsedToday, recordAiUse } from '../lib/aiQuota';
 import { track } from '../lib/analytics';
+import { moodChip, moodFromChip, MOODS } from '../lib/moods';
 import { canUseAi, FREE_LIMITS } from '../lib/plans';
 import { usePremium } from '../lib/premium';
 import { autoLayout } from '../lib/outfitLayout';
+import { useSettings } from '../lib/settings';
 import { useStore, useWearCounts } from '../lib/store';
+import { buildStyleProfile, hasStyle } from '../lib/style';
 import { aiConfigured, Suggestion, suggestOutfit } from '../lib/suggest';
 import { font, useTheme } from '../lib/theme';
 import { openPaywall } from '../lib/usePaywall';
@@ -20,12 +23,20 @@ const OCCASIONS = ['Everyday', 'Work', 'Date night', 'Party', 'Sport', 'Travel']
 
 export default function Suggest() {
   const { colors, ui } = useTheme();
-  const { items, logs, itemsOfLog, saveOutfit } = useStore();
+  const { items, logs, outfits, itemsOfLog, saveOutfit } = useStore();
+  const { settings } = useSettings();
+  const style = useMemo(
+    () => buildStyleProfile({ items, logs, outfits, itemsOfLog, notes: settings.styleNotes }),
+    [items, logs, outfits, itemsOfLog, settings.styleNotes],
+  );
   const wears = useWearCounts();
   const { width } = useWindowDimensions();
   const canvas = Math.min(width - 32, 420);
 
   const [occasion, setOccasion] = useState('Everyday');
+  /** The chosen mood chip ('' = none). */
+  const [moodLabel, setMoodLabel] = useState('');
+  const mood = moodFromChip(moodLabel);
   const [useWeather, setUseWeather] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -62,10 +73,10 @@ export default function Suggest() {
     setLoading(true);
     try {
       const coords = await getCoords();
-      const s = await suggestOutfit({ items, logs, itemsOfLog, wears, occasion, coords, avoidItemIds: result?.itemIds, basic });
+      const s = await suggestOutfit({ items, logs, itemsOfLog, wears, occasion, coords, avoidItemIds: result?.itemIds, basic, mood, style });
       setResult(s);
       if (s.source === 'ai' && !isPremium) setAiUsed(await recordAiUse());
-      track('suggestion_requested', { source: s.source, occasion, weather: !!s.weather, ok: true });
+      track('suggestion_requested', { source: s.source, occasion, mood: mood?.label, styled: hasStyle(style), weather: !!s.weather, ok: true });
     } catch (e) {
       setError((e as Error).message);
       track('suggestion_requested', { occasion, ok: false });
@@ -78,13 +89,39 @@ export default function Suggest() {
 
   const save = () => {
     if (!result) return;
-    const outfit = saveOutfit({ name: result.name, pieces: autoLayout(chosen), tags: [occasion.toLowerCase()] });
+    const tags = [occasion.toLowerCase(), ...(mood ? [mood.label.toLowerCase()] : [])];
+    const outfit = saveOutfit({ name: result.name, pieces: autoLayout(chosen), tags });
     track('outfit_saved', { pieces: chosen.length, source: 'suggestion' });
     router.replace(`/outfit/${outfit.id}`);
   };
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={[ui.pad, { gap: 12, maxWidth: 600, width: '100%', alignSelf: 'center' }]}>
+      <Pressable
+        onPress={() => router.push('/style')}
+        style={[ui.card, { padding: 14, gap: 4, flexDirection: 'row', alignItems: 'center' }]}
+        accessibilityRole="button"
+      >
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={[ui.body, { fontFamily: font.bodyBold }]}>🎨 Your style</Text>
+          <Text style={ui.muted}>
+            {hasStyle(style)
+              ? `Learned from ${style.outfitsLearned} outfit${style.outfitsLearned === 1 ? '' : 's'}${style.loved ? ` · ${style.loved} loved` : ''}${style.favoriteColors.length ? ` · loves ${style.favoriteColors.slice(0, 2).join(' & ')}` : ''}`
+              : 'Add outfits you’ve worn before so suggestions match your style.'}
+          </Text>
+        </View>
+        <Text style={[ui.h2, { color: colors.accent }]}>›</Text>
+      </Pressable>
+
+      <Text style={ui.label}>How are you feeling?</Text>
+      <ChipRow
+        options={MOODS.map(moodChip)}
+        selected={[moodLabel]}
+        onToggle={(m) => setMoodLabel((cur) => (cur === m ? '' : m))}
+        scroll={false}
+      />
+      {mood ? <Text style={ui.muted}>Going for: {mood.hint}.</Text> : null}
+
       <Text style={ui.label}>Occasion</Text>
       <ChipRow options={OCCASIONS} selected={[occasion]} onToggle={setOccasion} scroll={false} />
 
@@ -132,7 +169,9 @@ export default function Suggest() {
             <Button title="Save outfit" variant="secondary" onPress={save} style={{ flex: 1 }} />
             <Button
               title="Wear today"
-              onPress={() => router.push({ pathname: '/log', params: { itemIds: result.itemIds.join(',') } })}
+              onPress={() =>
+                router.push({ pathname: '/log', params: { itemIds: result.itemIds.join(','), mood: mood?.label ?? '' } })
+              }
               style={{ flex: 1 }}
             />
           </View>

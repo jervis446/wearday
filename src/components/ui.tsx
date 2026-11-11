@@ -19,14 +19,14 @@ import { font, Palette, themed, useTheme } from '../lib/theme';
 import { Item, STATUS_LABEL } from '../lib/types';
 
 /** Destructive confirm dialog that also works on web. */
-export function confirm(title: string, onYes: () => void) {
+export function confirm(title: string, onYes: () => void, action = 'Delete', message?: string) {
   if (Platform.OS === 'web') {
-    if (globalThis.confirm?.(title)) onYes();
+    if (globalThis.confirm?.(message ? `${title}\n\n${message}` : title)) onYes();
     return;
   }
-  Alert.alert(title, undefined, [
+  Alert.alert(title, message, [
     { text: 'Cancel', style: 'cancel' },
-    { text: 'Delete', style: 'destructive', onPress: onYes },
+    { text: action, style: 'destructive', onPress: onYes },
   ]);
 }
 
@@ -53,7 +53,7 @@ export function Bouncy({
   haptic?: boolean;
   accessibilityLabel?: string;
   accessibilityRole?: 'button' | 'radio' | 'tab';
-  accessibilityState?: { selected?: boolean; disabled?: boolean };
+  accessibilityState?: { selected?: boolean; disabled?: boolean; busy?: boolean };
 }) {
   const [scale] = useState(() => new Animated.Value(1));
   const to = (v: number) =>
@@ -86,6 +86,8 @@ export function Button({
   style,
   busy,
   icon,
+  disabled,
+  accessibilityLabel,
 }: {
   title: string;
   onPress: () => void;
@@ -93,6 +95,8 @@ export function Button({
   style?: ViewStyle;
   busy?: boolean;
   icon?: React.ReactNode;
+  disabled?: boolean;
+  accessibilityLabel?: string;
 }) {
   const { colors } = useTheme();
   const s = makeStyles(colors);
@@ -106,7 +110,13 @@ export function Button({
     </>
   );
   return (
-    <Bouncy onPress={busy ? undefined : onPress} style={[s.btnOuter, style ?? {}]}>
+    <Bouncy
+      onPress={busy ? undefined : onPress}
+      disabled={disabled}
+      style={[s.btnOuter, style ?? {}]}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: !!disabled, busy: !!busy }}
+    >
       {variant === 'primary' ? (
         <LinearGradient colors={colors.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.btn, s.btnGlow]}>
           {content}

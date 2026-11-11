@@ -27,6 +27,13 @@ type Store = Db & {
   mutate: (fn: (db: Db) => Db) => void;
   /** Replaces all data (used by restore), then deletes photos the old data used. */
   replaceAll: (db: Db) => void;
+  /** The user id this data belongs to; null until an account adopts it (see sync/owner.ts). */
+  ownerId: string | null;
+  /** The owner, including a change not yet rendered. */
+  getOwner: () => string | null;
+  setOwner: (uid: string | null) => void;
+  /** Removes all local data and photos and gives the empty wardrobe to `uid`. */
+  resetFor: (uid: string) => void;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -43,23 +50,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setDbState(value);
   }, []);
   const [ready, setReady] = useState(false);
+  // Stored inside the same AsyncStorage value as the data, so data and owner are always saved
+  // together (a crash can never leave one user's data marked as another's).
+  const [ownerId, setOwnerState] = useState<string | null>(null);
+  const ownerRef = useRef<string | null>(null);
+  const setOwner = useCallback((uid: string | null) => {
+    ownerRef.current = uid;
+    setOwnerState(uid);
+  }, []);
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
-        const loaded: Db = raw ? { ...empty, ...JSON.parse(raw) } : empty;
+        const { ownerId: owner, ...data } = raw ? JSON.parse(raw) : {};
+        const loaded: Db = { ...empty, ...data };
+        setOwner(typeof owner === 'string' && owner ? owner : null);
         setDb(loaded);
         // Once per launch, remove photos nothing points to (e.g. from a cancelled "Add item").
         cleanupImages([...loaded.items.map((i) => i.imageUri), ...loaded.logs.map((l) => l.selfieUri)]);
       })
       .catch(() => {})
       .finally(() => setReady(true));
-  }, [setDb]);
-
+  }, [setDb, setOwner]);
 
   useEffect(() => {
-    if (ready) AsyncStorage.setItem(KEY, JSON.stringify(db)).catch(() => {});
-  }, [db, ready]);
+    if (ready) AsyncStorage.setItem(KEY, JSON.stringify({ ...db, ownerId })).catch(() => {});
+  }, [db, ownerId, ready]);
 
   const upsert = <T extends { id: string }>(list: T[], next: T) =>
     list.some((x) => x.id === next.id) ? list.map((x) => (x.id === next.id ? next : x)) : [next, ...list];
@@ -152,6 +168,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     cleanupImages([...merged.items.map((i) => i.imageUri), ...merged.logs.map((l) => l.selfieUri)]);
   }, [setDb]);
 
+  const getOwner = useCallback(() => ownerRef.current, []);
+  const resetFor = useCallback(
+    (uid: string) => {
+      setOwner(uid);
+      replaceAll(empty);
+    },
+    [setOwner, replaceAll],
+  );
+
   const itemsOfLog = useCallback(
     (log: WearLog) => {
       const outfit = log.outfitId ? db.outfits.find((o) => o.id === log.outfitId) : undefined;
@@ -178,8 +203,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       replaceAll,
       getDb,
       mutate,
+      ownerId,
+      getOwner,
+      setOwner,
+      resetFor,
     }),
-    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, saveTrip, deleteTrip, saveCollection, deleteCollection, replaceAll, getDb, mutate],
+    [db, ready, saveItem, deleteItem, saveOutfit, deleteOutfit, saveLog, deleteLog, itemsOfLog, saveTrip, deleteTrip, saveCollection, deleteCollection, replaceAll, getDb, mutate, ownerId, getOwner, setOwner, resetFor],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -11,6 +11,8 @@ export type Settings = {
   autoRemoveBackground: boolean;
   /** Share anonymous usage data (only if analytics is configured in this build). */
   analytics: boolean;
+  /** The person's own description of their style, sent with AI suggestions (see style.ts). */
+  styleNotes?: string;
   /** ISO date of the last successful export. */
   lastBackupAt?: string;
 };
