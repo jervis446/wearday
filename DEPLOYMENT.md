@@ -10,9 +10,9 @@ Live resources for Wearday. This file holds no secrets: keys live in Supabase, C
 | iPhone (browser, simulator build) | Appetize.io app `josbgjh7naecp3sdab4ossxohy` | https://appetize.io/app/josbgjh7naecp3sdab4ossxohy |
 | Sign-in emails | Gmail SMTP (`smtp.gmail.com:465`) via a Gmail app password, entered in Supabase → Authentication → SMTP | Sender name "Wearday", 30 emails/hour in Supabase (Gmail allows about 500/day) |
 
-Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`.
+Applied database migrations: `20261107090000_wardrobe_sync`, `20261108090000_premium`, `20261110090000_noha_money`, `20261110100000_asanoha_profiles`, `20261111090000_friends_and_fits` (applied 11 November 2026; friends, fit posts, ratings, reports, blocks and the private `fits` storage bucket).
 
-Not yet applied (branch `claude/friends-rate-my-fit`): `20261111090000_friends_and_fits` (friends, fit posts, ratings, reports, blocks and the private `fits` storage bucket). Apply it with `npx supabase db push` before shipping an app build that includes Friends; older app builds keep working without it.
+Known difference from the repo: on the live database `noha_transactions.user_id` still has a foreign key to `auth.users` with `on delete cascade` (an earlier version of `20261110090000_noha_money`). The repo version has no foreign key so payment records survive account deletion. Needs a follow-up migration.
 
 EAS **preview** environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_AUTH_PROVIDERS=email`, `EXPO_PUBLIC_SUGGEST_URL`.
 
